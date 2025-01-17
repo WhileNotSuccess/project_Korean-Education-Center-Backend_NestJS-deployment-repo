@@ -1,26 +1,32 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAttachmentDto } from './dto/create-attachment.dto';
-import { UpdateAttachmentDto } from './dto/update-attachment.dto';
+import { Injectable } from "@nestjs/common";
+import { DataSource } from "typeorm";
+import { Attachment } from "./entities/attachment.entity";
 
 @Injectable()
-export class AttachmentsService {
-  create(createAttachmentDto: CreateAttachmentDto) {
-    return 'This action adds a new attachment';
-  }
+export class AttachmentsService{
+    constructor(
+        private readonly dataSource:DataSource
 
-  findAll() {
-    return `This action returns all attachments`;
-  }
+    ){}
 
-  findOne(id: number) {
-    return `This action returns a #${id} attachment`;
-  }
+    async create(files:Express.Multer.File[],postId:number){
+        files.map(async file=>{
+            await this.dataSource.manager.save(Attachment,
+                {   
+                    postId:postId,
+                    filename:file.filename,
+                    fileType:file.mimetype,
+                    fileSize:file.size
+                }
+            )
+        })
+    }
+    async get(postId:number){
+        return await this.dataSource.manager.findBy(Attachment,{postId})
+    }
 
-  update(id: number, updateAttachmentDto: UpdateAttachmentDto) {
-    return `This action updates a #${id} attachment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} attachment`;
-  }
+    
+    async getFile(id:number){
+        return await this.dataSource.manager.findOneBy(Attachment,{id})
+    }
 }
