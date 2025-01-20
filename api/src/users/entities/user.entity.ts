@@ -11,9 +11,15 @@ export class User {
     @Column()
     password:string
 
-    @Column()
+    @Column({unique:true})
     email:string
 
-    @Column()
+    @Column({nullable:true})
     googleId:string
+
+    @Column({nullable:true})
+    emailVerifiedAt:Date
+
+    @Column()
+    signUpVerifyToken:string
 }
