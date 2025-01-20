@@ -19,20 +19,23 @@ export class UsersService {
     })
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
+  async findOneBySignupVerifyToken(signUpVerifyToken:string):Promise<User>{
+    const user = await this.dataSource.manager.findOneBy(User,{signUpVerifyToken:signUpVerifyToken})
+    if(user){
 
+      return transactional<User>(this.dataSource, async (queryRunner)=>{
+        const now = new Date()
+        await queryRunner.manager.update(User, { signUpVerifyToken }, { emailVerifiedAt: now });
+        return user
+      })
+    }else{
+      return null
+    }
+  }
   async findOneByEmail(email: string) {
     const user = await this.dataSource.manager.findOneBy(User,{email})
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
 }

@@ -1,7 +1,6 @@
 import { BadGatewayException, BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { SignInDto } from './dto/signIn.dto';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -12,7 +11,6 @@ import { EmailService } from 'src/email/email.service';
 export class AuthService {
   constructor(
     private readonly usersService:UsersService,
-    private readonly config:ConfigService,
     private readonly jwtService:JwtService,
     private readonly emailService:EmailService
   ){}
@@ -22,6 +20,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
     }
+    if(!user.emailVerifiedAt){
+      throw new UnauthorizedException('이메일 인증을 완료해주세요');
+    }
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
@@ -29,7 +30,7 @@ export class AuthService {
     return await this.issuesAJwt(user)
   }
 
-  async signUp(dto:SignUpDto){
+  async signUp(dto:SignUpDto, language){
     const user = await this.usersService.findOneByEmail(dto.email)
     if (user) {
       throw new BadRequestException('해당 이메일로 가입할 수 없습니다.')
@@ -40,11 +41,15 @@ export class AuthService {
     const newUser = await this.usersService.create({
       ...dto,password:hashedPassword
     })
-    await this.emailService.sendSignUpEmail(newUser.signUpVerifyToken)
+    await this.emailService.sendSignUpEmail(dto.email,newUser.signUpVerifyToken, language)
+  }
+
+  async emailVerify(signUpVerifyToken:string):Promise<User>{
+    return await this.usersService.findOneBySignupVerifyToken(signUpVerifyToken)
   }
 
   async issuesAJwt(user:User){
-    console.log(user)
+
     const payload = {
       sub:`${user.id}`,
       username:user.name,
