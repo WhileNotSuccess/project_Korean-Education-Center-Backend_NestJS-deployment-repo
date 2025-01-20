@@ -1,34 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, UploadedFile } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerDiskOptions } from 'src/common/multer-diskoptions';
 
 @Controller('banners')
 export class BannersController {
-  constructor(private readonly bannersService: BannersService) {}
+  constructor(
+    private readonly bannersService: BannersService,
+    
+  ) {}
 
   @Post()
-  create(@Body() createBannerDto: CreateBannerDto) {
-    return this.bannersService.create(createBannerDto);
+  @UseInterceptors(FileInterceptor('file',multerDiskOptions))
+  async create(
+    @Body() createBannerDto: CreateBannerDto,
+    @UploadedFiles() file:Express.Multer.File
+  ) {
+    return await this.bannersService.create(createBannerDto,file);
   }
 
   @Get()
-  findAll() {
-    return this.bannersService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bannersService.findOne(+id);
+  async findAll() {
+    return await this.bannersService.findAll();
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
-    return this.bannersService.update(+id, updateBannerDto);
+  @UseInterceptors()
+  async update(@Param('id') id: number, @Body() updateBannerDto: UpdateBannerDto) {
+    await this.bannersService.update(+id, updateBannerDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bannersService.remove(+id);
+  async remove(@Param('id') id: number) {
+    await this.bannersService.remove(+id);
   }
 }

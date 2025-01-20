@@ -21,6 +21,6 @@ export class Post {
     language:string
     @Column({nullable:true})
     expiredAt:Date
-    @OneToMany(()=>Attachment,attach=>attach.postId)
+    @OneToMany(()=>Attachment,attach=>attach.postId,{onDelete:'CASCADE'})
     attach:Attachment[]
 }
