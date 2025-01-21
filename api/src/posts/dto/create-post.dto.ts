@@ -1,4 +1,4 @@
-import { IsDate, IsOptional, IsString } from "class-validator"
+import { IsArray, IsDate, IsOptional, IsString } from "class-validator"
 
 export class CreatePostDto {
     @IsString()
@@ -12,4 +12,8 @@ export class CreatePostDto {
     @IsDate()
     @IsOptional()
     expiredAt:Date
+    @IsArray()
+    @IsString({each:true})
+    @IsOptional()
+    imagePath:string[]
 }

@@ -13,20 +13,14 @@ export class AttachmentsController {
     private readonly attachmentsService: AttachmentsService
   ) {}
 
-    @Get()  //파일 다운로드 컨트롤러
-    async getFile(@Query('id') id:number, @Res() res:Response){
-      
-      const path=`${__dirname}/../../uploads/posts`
-      const fileUrl=await this.attachmentsService.getFile(id,path)
-      return res.sendFile(fileUrl) // 파일을 전달후 브라우저가 지원하는 파일형식이면 브라우저에서 열람 가능
-      // return res.download(fileUrl) //파일 다운로드 강제
-    }
-
-    @Post()
+    @Post() // 완료
     @UseInterceptors(FileInterceptor('image',multerDiskOptions))
     async createImage(
       @UploadedFile() file:Express.Multer.File
     ){
-      return {filename:file.filename}
+      return {
+        message:'파일이 저장되었습니다.',
+        url:file.path
+      }
     }
 }

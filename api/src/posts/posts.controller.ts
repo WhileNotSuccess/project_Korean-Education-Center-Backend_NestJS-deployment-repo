@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseInterceptors, UploadedFiles, BadRequestException, Res, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseInterceptors, UploadedFiles, BadRequestException, Res, UploadedFile, DefaultValuePipe } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -21,10 +21,10 @@ export class PostsController {
       throw new BadRequestException('category와 id중 하나만 입력하세요.') //category와 id 둘 다 입력 받았을 경우 badRequest
     }
     const find = category||+id
-    const language=req.cookies['language']
+    const language=req.cookies['language']||'korean'
     
     if(!language){throw new BadRequestException('cookie에 language가 없습니다.')} // cookie에 language가 없을경우 badRequest
-    const post=await this.postsService.getOne(find,language) //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
+    const {post,files}=await this.postsService.getOne(find,language) //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
     if(!post){
       return {message:`${find}${typeof(find)==='string'?' 안내글이 없습니다.':'번 게시글이 없습니다.' }`} // 글을 찾지 못했을 경우 없다는 return
     }
@@ -38,17 +38,15 @@ export class PostsController {
   @Get(':category') // 완료 
   async getAll(
     @Param('category') category:string,
-    @Query('limit') limit:number,
-    @Query('page') page:number,
+    @Query('limit',new DefaultValuePipe(10)) limit:number,
+    @Query('page', new DefaultValuePipe(1)) page:number,
     @Req() req:Request
   ){
-    page=page?page:1
-    limit=limit?limit:10
-    return await this.postsService.getPagination(category,page,limit,req.cookies['language'])
+
+    return await this.postsService.getPagination(category,page,limit,req.cookies['language']||'korean')
   }
 
   @Post() //완료 
-  @UseInterceptors(FilesInterceptor('image',10,multerDiskOptions))
   @UseInterceptors(FilesInterceptor('file',10,multerDiskOptions))
   async create(
     @Body() createPostDto: CreatePostDto, 
@@ -59,19 +57,19 @@ export class PostsController {
     return {message:'글이 작성되었습니다.'}
   }
 
-  @Patch(':id') //완료 
-  @UseInterceptors(FilesInterceptor('file',10,multerDiskOptions))
+  @Patch(':id') //완료
   async update(
-    @Param('id') id: number, @Body() updatePostDto: UpdatePostDto,
-    @UploadedFiles() files:Express.Multer.File[]
-    ) {
+    @Param('id') id: number, 
+    @Body() updatePostDto: UpdatePostDto,
+    ){
     await this.postsService.update(id, updatePostDto);
     return {message:'글이 수정되었습니다.'}
   }
   
+
   @Delete(':id') // 완료
   async remove(@Param('id') id: number) {
-    await this.postsService.remove(id);
+    await this.postsService.remove(id)
     return {message:'글이 삭제되었습니다.'}
   }
 
