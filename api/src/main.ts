@@ -14,13 +14,14 @@ async function bootstrap() {
       enableImplicitConversion:true
     }
   }))
-  app.enableCors({
-    origin:'*',
-    methods:'GET,POST,PUT,PATCH,DELETE',
-    allowedHeaders:'*',
-    credentials:true
-  })
   app.use(cookieParser())
+  app.enableCors({
+    origin: ['https://www.bapull.store', 'http://localhost:3000'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept',
+    credentials: true,
+  })
+  
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

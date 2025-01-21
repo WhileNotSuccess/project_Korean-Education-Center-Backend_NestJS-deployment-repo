@@ -17,6 +17,8 @@ import { Banner } from './banners/entities/banner.entity';
 import { ConsultationRequest } from './consultation-request/entities/consultation-request.entity';
 import { Staff } from './staff/entities/staff.entity';
 import { User } from './users/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -42,7 +44,9 @@ import { User } from './users/entities/user.entity';
     BannersModule,
     ConsultationRequestModule,
     StaffModule,
-    UsersModule
+    UsersModule,
+    AuthModule,
+    EmailModule
   ],
   controllers: [AppController],
   providers: [AppService],
