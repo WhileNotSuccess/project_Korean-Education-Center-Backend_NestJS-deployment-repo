@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { DataSource } from 'typeorm';
+import { Banner } from './entities/banner.entity';
+import { Multer } from 'multer';
 
 @Injectable()
 export class BannersService {
-  create(createBannerDto: CreateBannerDto) {
-    return 'This action adds a new banner';
+  constructor(
+    private readonly dataSource:DataSource
+  ){}
+
+  async create(createBannerDto: CreateBannerDto,file:Express.Multer.File) {
+    await this.dataSource.transaction(async manager=>{
+      await manager.save(Banner,{...createBannerDto,image:file.originalname})
+    })
   }
 
-  findAll() {
-    return `This action returns all banners`;
+  async findAll() {
+    return await this.dataSource.createQueryBuilder().select('banner').from(Banner,'banner')
+    .where('expiredAt >= NOW()').getMany() // sql문으로 NOW()가 현재 날짜,시간을 계산하여 현재 날짜보다 높은(나중인) banner들을 다 가져옴
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} banner`;
+  async update(id: number, updateBannerDto: UpdateBannerDto) {
+    return await this.dataSource.transaction(async manager=>{
+      await manager.update(Banner,id,updateBannerDto)
+    })
   }
 
-  update(id: number, updateBannerDto: UpdateBannerDto) {
-    return `This action updates a #${id} banner`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} banner`;
+  async remove(id: number) {
+    return await this.dataSource.transaction(async manager=>{
+      await manager.delete(Banner,id)
+    })
   }
 }

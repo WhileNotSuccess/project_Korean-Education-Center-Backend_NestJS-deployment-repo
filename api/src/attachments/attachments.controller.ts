@@ -1,34 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AttachmentsService } from './attachments.service';
+import { Response } from 'express';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { UpdateAttachmentDto } from './dto/update-attachment.dto';
+import { Multer } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerDiskOptions } from 'src/common/multer-diskoptions';
 
 @Controller('attachments')
 export class AttachmentsController {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor(
+    private readonly attachmentsService: AttachmentsService
+  ) {}
 
-  @Post()
-  create(@Body() createAttachmentDto: CreateAttachmentDto) {
-    return this.attachmentsService.create(createAttachmentDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.attachmentsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attachmentsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAttachmentDto: UpdateAttachmentDto) {
-    return this.attachmentsService.update(+id, updateAttachmentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.attachmentsService.remove(+id);
-  }
+    @Post() // 완료
+    @UseInterceptors(FileInterceptor('image',multerDiskOptions))
+    async createImage(
+      @UploadedFile() file:Express.Multer.File
+    ){
+      return {
+        message:'파일이 저장되었습니다.',
+        url:file.path
+      }
+    }
 }

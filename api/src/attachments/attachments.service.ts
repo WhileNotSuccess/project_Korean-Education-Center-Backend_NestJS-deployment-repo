@@ -1,26 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAttachmentDto } from './dto/create-attachment.dto';
-import { UpdateAttachmentDto } from './dto/update-attachment.dto';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { DataSource } from "typeorm";
+import { Attachment } from "./entities/attachment.entity";
+import * as fs from 'fs'
+import * as path from 'path'
+import { transactional } from "src/common/utils/transaction-helper";
 
 @Injectable()
-export class AttachmentsService {
-  create(createAttachmentDto: CreateAttachmentDto) {
-    return 'This action adds a new attachment';
-  }
+export class AttachmentsService{
+    constructor(
+        private readonly dataSource:DataSource
 
-  findAll() {
-    return `This action returns all attachments`;
-  }
+    ){}
 
-  findOne(id: number) {
-    return `This action returns a #${id} attachment`;
-  }
+    async create(files:Express.Multer.File[],postId:number){ // 외부에 트랜잭션 적용으로 해당 함수에는 미적용
+        files.map(async file=>{
+            await this.dataSource.manager.save(Attachment,
+                {   
+                    postId:postId,
+                    filename:file.filename,
+                    fileType:file.mimetype,
+                    fileSize:file.size
+                }
+            )
+        })
+    }
 
-  update(id: number, updateAttachmentDto: UpdateAttachmentDto) {
-    return `This action updates a #${id} attachment`;
-  }
+    async getByPostId(postId:number){
+        return await this.dataSource.manager.findBy(Attachment,{postId})
+    }
+    
 
-  remove(id: number) {
-    return `This action removes a #${id} attachment`;
-  }
 }
