@@ -1,5 +1,7 @@
 export class CreateUserDto {
     email:string
-    password:string
+    password?:string
     name:string
+    emailVerifiedAt?:Date
+    googleId?:string
 }

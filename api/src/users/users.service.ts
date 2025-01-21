@@ -19,10 +19,9 @@ export class UsersService {
     })
   }
 
-  async findOneBySignupVerifyToken(signUpVerifyToken:string):Promise<User>{
+  async updateUsersEmailVerifiedAt(signUpVerifyToken:string):Promise<User>{
     const user = await this.dataSource.manager.findOneBy(User,{signUpVerifyToken:signUpVerifyToken})
     if(user){
-
       return transactional<User>(this.dataSource, async (queryRunner)=>{
         const now = new Date()
         await queryRunner.manager.update(User, { signUpVerifyToken }, { emailVerifiedAt: now });
@@ -36,6 +35,20 @@ export class UsersService {
     const user = await this.dataSource.manager.findOneBy(User,{email})
     return user;
   }
+  async findOneByGoogleId(googleId:string){
+    const user = await this.dataSource.manager.findOneBy(User,{googleId})
+    return user;
+  }
 
-
+  async updateUserName(id:number, dto:UpdateUserDto){
+    return transactional<void>(this.dataSource, async (queryRunner)=>{
+      await queryRunner.manager.update(User, { id }, { name: dto.name });
+    })
+  }
+  
+  async updateUserGoogleId(id:number, googleId:string){
+    return transactional<void>(this.dataSource, async (queryRunner)=>{
+      await queryRunner.manager.update(User, { id }, { googleId });
+    })
+  }
 }

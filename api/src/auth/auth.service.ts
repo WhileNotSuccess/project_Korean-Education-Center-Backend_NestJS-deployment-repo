@@ -18,14 +18,14 @@ export class AuthService {
   async signIn(dto:SignInDto){
     const user = await this.usersService.findOneByEmail(dto.email)
     if (!user) {
-      throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+      throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
     }
     if(!user.emailVerifiedAt){
       throw new UnauthorizedException('이메일 인증을 완료해주세요');
     }
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+      throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
     }
     return await this.issuesAJwt(user)
   }
@@ -44,12 +44,7 @@ export class AuthService {
     await this.emailService.sendSignUpEmail(dto.email,newUser.signUpVerifyToken, language)
   }
 
-  async emailVerify(signUpVerifyToken:string):Promise<User>{
-    return await this.usersService.findOneBySignupVerifyToken(signUpVerifyToken)
-  }
-
   async issuesAJwt(user:User){
-
     const payload = {
       sub:`${user.id}`,
       username:user.name,
