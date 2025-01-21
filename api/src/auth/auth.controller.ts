@@ -6,7 +6,6 @@ import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
 import { GoogleAuthGuard } from './guards/google.guard';
-import { AuthGuard } from './guards/auth.guard';
 import { GoogleLinkAuthGuard } from './guards/google-link.guard';
 import { JwtLinkGuard } from './guards/jwt-link.guard';
 
@@ -30,14 +29,11 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/redirect')
-  async googleRedirect(@Req() req, @Res() res){
-    if(req.user.emailExistsButGoogleIdIsNotExists){
-      res.cookie('needGoogleAccountLinking',req.user.emailExistsButGoogleIdIsNotExists)
-    }
+  async googleRedirect(@Req() req, @Res() res:Response){
     if(req.user.newUser){
       res.cookie('new_user',true)
     }
-    const user = await this.usersService.findOneByGoogleId(res.user)
+    const user = await this.usersService.findOneByEmail(req.user.email)
     const token = await this.authService.issuesAJwt(user)
     res.cookie('access_token',token.access_token)
     res.redirect(`${this.frontendUrl}`)
@@ -45,6 +41,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() dto:SignInDto,@Res() res:Response){
+    console.log('object')
     const token = await this.authService.signIn(dto)
     res.cookie('access_token',token.access_token)
     res.redirect(process.env.FRONTEND_URL)
@@ -65,17 +62,6 @@ export class AuthController {
     const token = await this.authService.issuesAJwt(user)
     res.cookie('access_token',token.access_token)
     res.redirect(process.env.FRONTEND_URL)
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('google/link-with-google-id')
-  async googleLinkWithGoogleId(@Req() req){
-    const googleId = req.cookies['needGoogleAccountLinking']
-    const userId = req.user.id
-    await this.usersService.updateUserGoogleId(userId,googleId)
-    return {
-      message:"연동완료"
-    }
   }
 
   @UseGuards(GoogleLinkAuthGuard,JwtLinkGuard)

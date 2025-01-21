@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy,Profile } from "passport-google-oauth20";
 import { UsersService } from "src/users/users.service";
@@ -21,7 +21,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     if(!user){
         const maybe = await this.usersService.findOneByEmail(profile.emails[0].value)
         if(maybe){
-          return {...maybe, emailExistsButGoogleIdIsNotExists:profile.id}
+          throw new BadRequestException('해당 계정으로 로그인해서 연동해주세요')
         }
         const date = new Date()
         const newUser = await this.usersService.create({
