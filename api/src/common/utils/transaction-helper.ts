@@ -13,8 +13,9 @@ export async function transactional<T>(
     await queryRunner.commitTransaction();
     return result;
   } catch (error) {
+    console.error(error);
     await queryRunner.rollbackTransaction();
-    throw new BadRequestException(`${error.sqlMessage}`)
+    throw new BadRequestException(`${error.sqlMessage}`);
   } finally {
     await queryRunner.release();
   }

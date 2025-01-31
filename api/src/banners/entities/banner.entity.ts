@@ -1,15 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Language } from 'src/common/language.enum';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({name:'Banner'})
+@Entity({ name: 'Banner' })
 export class Banner {
-    @PrimaryGeneratedColumn()
-    id:number
-    @Column()
-    image:string // 이미지 url
-    @Column()
-    language:string
-    @Column()
-    expiredAt:Date
-    @Column()
-    url:string // 이미지 클릭시 이동할 url
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column({ length: 70 })
+  image: string; // 이미지 url
+  @Column({ type: 'enum', enum: Language, default: Language.KOREAN })
+  language: string;
+  @Column()
+  expiredAt: Date;
+  @Column({ length: 80 })
+  url: string; // 이미지 클릭시 이동할 url
 }
