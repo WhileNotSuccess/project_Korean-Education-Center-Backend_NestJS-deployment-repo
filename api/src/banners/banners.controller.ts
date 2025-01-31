@@ -1,24 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFiles,
+  UploadedFile,
+} from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerDiskOptions } from 'src/common/multer-diskoptions';
+import { ApiExcludeController } from '@nestjs/swagger';
 
+@ApiExcludeController()
 @Controller('banners')
 export class BannersController {
-  constructor(
-    private readonly bannersService: BannersService,
-    
-  ) {}
+  constructor(private readonly bannersService: BannersService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file',multerDiskOptions))
+  @UseInterceptors(FileInterceptor('file', multerDiskOptions))
   async create(
     @Body() createBannerDto: CreateBannerDto,
-    @UploadedFiles() file:Express.Multer.File
+    @UploadedFiles() file: Express.Multer.File,
   ) {
-    return await this.bannersService.create(createBannerDto,file);
+    return await this.bannersService.create(createBannerDto, file);
   }
 
   @Get()
@@ -28,7 +38,10 @@ export class BannersController {
 
   @Patch(':id')
   @UseInterceptors()
-  async update(@Param('id') id: number, @Body() updateBannerDto: UpdateBannerDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() updateBannerDto: UpdateBannerDto,
+  ) {
     await this.bannersService.update(+id, updateBannerDto);
   }
 

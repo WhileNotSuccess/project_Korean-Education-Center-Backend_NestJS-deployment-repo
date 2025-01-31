@@ -1,19 +1,18 @@
-import { IsArray, IsDate, IsOptional, IsString } from "class-validator"
+import { IsArray, IsDate, IsOptional, IsString } from 'class-validator';
 
 export class CreatePostDto {
-    @IsString()
-    category:string
-    @IsString()
-    title:string
-    @IsString()
-    content:string
-    @IsString()
-    language:string
-    @IsDate()
-    @IsOptional()
-    expiredAt:Date
-    @IsArray()
-    @IsString({each:true})
-    @IsOptional()
-    imagePath:string[]
+  @IsString()
+  category: string;
+  @IsString()
+  title: string;
+  @IsString()
+  content: string;
+  @IsString()
+  language: string;
+  @IsDate()
+  @IsOptional()
+  expiredAt: Date;
+  @IsString()
+  @IsOptional()
+  imagePath: string;
 }

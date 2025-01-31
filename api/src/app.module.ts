@@ -19,24 +19,37 @@ import { Staff } from './staff/entities/staff.entity';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: '/files',
+    }),
     ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
-      inject:[ConfigService],
-      useFactory:(config: ConfigService)=>({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
         type: 'mysql',
-        host: config.get<string>("DB_HOST"),
+        host: config.get<string>('DB_HOST'),
         port: 3306,
-        username: config.get<string>("DB_USER"),
-        password: config.get<string>("DB_PASSWORD"),
-        database: config.get<string>("DB_DATABASE"),
-        entities: [Post,ApplicationForm,Attachment,Banner,ConsultationRequest,Staff,User],
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_DATABASE'),
+        entities: [
+          Post,
+          ApplicationForm,
+          Attachment,
+          Banner,
+          ConsultationRequest,
+          Staff,
+          User,
+        ],
         synchronize: true,
-      })
+      }),
     }),
     PostsModule,
     ApplicationFormModule,
@@ -46,7 +59,7 @@ import { EmailModule } from './email/email.module';
     StaffModule,
     UsersModule,
     AuthModule,
-    EmailModule
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
