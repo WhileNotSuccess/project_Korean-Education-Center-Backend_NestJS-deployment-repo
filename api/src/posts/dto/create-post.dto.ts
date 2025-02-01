@@ -12,8 +12,8 @@ export class CreatePostDto {
     @IsDate()
     @IsOptional()
     expiredAt:Date
-    @IsArray()
-    @IsString({each:true})
+    // @IsArray()
+    // @IsString({each:true})
     @IsOptional()
     imagePath:string[]
 }

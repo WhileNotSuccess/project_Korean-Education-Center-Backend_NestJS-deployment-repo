@@ -14,7 +14,7 @@ export class Attachment{
     @Column()
     fileSize:number
     @CreateDateColumn()
-    createdAt:Date
+    createDate:Date
     @ManyToOne(()=>Post,(post)=>post.id,{onDelete:'CASCADE'})
     @JoinColumn({name:'postId'})
     posts:Post

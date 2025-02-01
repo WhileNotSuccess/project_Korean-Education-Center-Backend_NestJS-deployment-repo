@@ -9,18 +9,18 @@ export class Post {
     title:string
     @Column({type:'longtext'})
     content:string
-    @Column()
+    @Column() 
     author:string
-    @Column()
+    @Column({length:20})
     category:string
     @CreateDateColumn()
-    createdAt:Date
+    createdDate:Date
     @UpdateDateColumn()
-    updatedAt:Date
-    @Column()
+    updatedDate:Date
+    @Column({length:10})
     language:string
     @Column({nullable:true})
-    expiredAt:Date
+    expiredDate:Date
     @OneToMany(()=>Attachment,attach=>attach.postId,{onDelete:'CASCADE'})
     attach:Attachment[]
 }

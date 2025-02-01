@@ -25,16 +25,16 @@ export class PostsService {
 
   async getOne(find:number|string,language:string){
     let post:Post 
-    let files:string[]
+    let files:Attachment[]
     switch(typeof(find)){ //find의 타입 확인해서 string(안내글)과 number(게시글) 분류
       case 'string': //안내글 찾을 경우 
-        // post=await this.datasource.manager.findOneBy(Post,{category:find,language})//최신글 하나 가져오는 코드 추가
         post=await this.datasource.manager.createQueryBuilder().select('posts').from(Post,'posts') //Post테이블에서 정보 다 받아오고
         .where('category LIKE :category',{category:find}).andWhere('language LIKE :language',{language}) // 그때 받는 조건 2개
         .orderBy('updatedAt','DESC').getOne() // 최신순 정렬로 하나만 받아옴
         break
       case 'number': //게시글 찾을 경우 
         post=await this.datasource.manager.findOneBy(Post,{id:find})
+        files=(await this.datasource.manager.findBy(Attachment,{postId:find}))
       }
     
     return {post,files}
@@ -46,8 +46,8 @@ export class PostsService {
     if(total==0){throw new BadRequestException(`${category}카테고리 글이 존재하지 않습니다.`)}
 
     const totalPage = Math.ceil(total / take);
-    const nextPage = page <= totalPage ? `${this.config.get<string>('BACKEND_URL')}/posts/${category}?limit=${take}&page=${page + 1}` : null;
-    const prevPage = page > 1 ? `${this.config.get<string>('BACKEND_URL')}/posts/${category}?limit=${take}&page=${page - 1}` : null;
+    const nextPage = page <= totalPage ? `/posts/${category}?limit=${take}&page=${page + 1}` : null;
+    const prevPage = page > 1 ? `/posts/${category}?limit=${take}&page=${page - 1}` : null;
     
     return { 
       message:`${category}의 ${page}번째 페이지를 불러왔습니다.`,
@@ -64,7 +64,7 @@ export class PostsService {
       const post=await queryRunner.manager.save(Post,{...createPostDto,author}) // post 테이블 작성 
 
       if(createPostDto.imagePath){ //imagePath가 있을경우
-        const imagePath=createPostDto.imagePath // image의 경로 배열
+        const imagePath=createPostDto.imagePath // image의 파일 경로 배열
         let array=[] // attachment 테이블 생성할 때 쓸 배열
         for(let i in imagePath){
           const fileSize=fs.statSync(imagePath[i]).size //파일 사이즈
@@ -82,6 +82,11 @@ export class PostsService {
   }
 
   async update(id: number, updatePostDto: UpdatePostDto) {
+    
+    const files=(await this.attachmentService.getByPostId(id))
+    
+    if(updatePostDto.imagePath){}
+    if(updatePostDto.filePath){}
     await transactional<void>(this.datasource,async (queryRunner)=>{
       await queryRunner.manager.update(Post,id,updatePostDto)
       

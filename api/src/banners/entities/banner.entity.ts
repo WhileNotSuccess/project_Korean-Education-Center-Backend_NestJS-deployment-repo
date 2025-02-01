@@ -9,7 +9,7 @@ export class Banner {
     @Column()
     language:string
     @Column()
-    expiredAt:Date
+    expiredDate:Date
     @Column()
     url:string // 이미지 클릭시 이동할 url
 }

@@ -20,10 +20,9 @@ export class PostsController {
     if(category&&id){
       throw new BadRequestException('category와 id중 하나만 입력하세요.') //category와 id 둘 다 입력 받았을 경우 badRequest
     }
-    const find = category||+id
-    const language=req.cookies['language']||'korean'
+    const find = category||+id 
+    const language=req.cookies['language']||'korean' //쿠키에 language가 없을 경우 기본값 korean
     
-    if(!language){throw new BadRequestException('cookie에 language가 없습니다.')} // cookie에 language가 없을경우 badRequest
     const {post,files}=await this.postsService.getOne(find,language) //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
     if(!post){
       return {message:`${find}${typeof(find)==='string'?' 안내글이 없습니다.':'번 게시글이 없습니다.' }`} // 글을 찾지 못했을 경우 없다는 return
@@ -45,7 +44,6 @@ export class PostsController {
 
     return await this.postsService.getPagination(category,page,limit,req.cookies['language']||'korean')
   }
-
   @Post() //완료 
   @UseInterceptors(FilesInterceptor('file',10,multerDiskOptions))
   async create(

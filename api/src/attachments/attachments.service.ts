@@ -12,21 +12,29 @@ export class AttachmentsService{
 
     ){}
 
-    async create(files:Express.Multer.File[],postId:number){ // 외부에 트랜잭션 적용으로 해당 함수에는 미적용
-        files.map(async file=>{
-            await this.dataSource.manager.save(Attachment,
-                {   
-                    postId:postId,
-                    filename:file.filename,
-                    fileType:file.mimetype,
-                    fileSize:file.size
-                }
-            )
+    async create(files:Express.Multer.File[],postId:number){
+        transactional(this.dataSource,async queryRunner=>{
+            files.map(async file=>{
+                await queryRunner.manager.save(Attachment,
+                    {   
+                        postId:postId,
+                        filename:file.filename,
+                        fileType:file.mimetype,
+                        fileSize:file.size
+                    }
+                )
+            })
         })
     }
 
     async getByPostId(postId:number){
-        return await this.dataSource.manager.findBy(Attachment,{postId})
+        const files=(await this.dataSource.manager.findBy(Attachment,{postId}))
+        return files
+    }
+
+    async getDownload(id:number){
+        const attachment=await this.dataSource.manager.findOneBy(Attachment,{id})
+        return `/app/uploads/attachments/${attachment.filename}`
     }
     
 
