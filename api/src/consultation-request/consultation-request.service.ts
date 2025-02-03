@@ -1,26 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
 import { UpdateConsultationRequestDto } from './dto/update-consultation-request.dto';
+import { DataSource } from 'typeorm';
+import { ConsultationRequest } from './entities/consultation-request.entity';
+import { transactional } from 'src/common/utils/transaction-helper';
 
 @Injectable()
 export class ConsultationRequestService {
-  create(createConsultationRequestDto: CreateConsultationRequestDto) {
-    return 'This action adds a new consultationRequest';
+  constructor(private readonly dataSource: DataSource) {}
+  async create(createConsultationRequestDto: CreateConsultationRequestDto) {
+    await transactional<void>(this.dataSource, async (queryRunner) => {
+      await queryRunner.manager.save(
+        ConsultationRequest,
+        createConsultationRequestDto,
+      );
+    });
   }
 
-  findAll() {
-    return `This action returns all consultationRequest`;
+  async findAll(isDone?: boolean) {
+    const queryBuilder = this.dataSource.manager
+      .createQueryBuilder()
+      .select('*')
+      .from(ConsultationRequest, 'consult');
+
+    if (typeof isDone === 'boolean') {
+      queryBuilder.where('consult.isDone = :isDone', { isDone });
+    }
+
+    return await queryBuilder.getRawMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} consultationRequest`;
+  async update(
+    id: number,
+    updateConsultationRequestDto: UpdateConsultationRequestDto,
+  ) {
+    await transactional<void>(this.dataSource, async (queryRunner) => {
+      await queryRunner.manager.update(
+        ConsultationRequest,
+        id,
+        updateConsultationRequestDto,
+      );
+    });
   }
 
-  update(id: number, updateConsultationRequestDto: UpdateConsultationRequestDto) {
-    return `This action updates a #${id} consultationRequest`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} consultationRequest`;
+  async remove(id: number) {
+    await transactional<void>(this.dataSource, async (queryRunner) => {
+      await queryRunner.manager.delete(ConsultationRequest, id);
+    });
   }
 }
