@@ -21,6 +21,8 @@ export class ConsultationRequestService {
     const queryBuilder = this.dataSource.manager
       .createQueryBuilder()
       .select('*')
+      .orderBy('isDone', 'ASC')
+      .addOrderBy('schedule', 'ASC')
       .from(ConsultationRequest, 'consult');
 
     if (typeof isDone === 'boolean') {

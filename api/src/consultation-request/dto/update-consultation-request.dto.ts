@@ -5,6 +5,7 @@ import {
   IsDate,
   IsEmail,
   IsOptional,
+  IsString,
   Matches,
 } from 'class-validator';
 
@@ -38,4 +39,12 @@ export class UpdateConsultationRequestDto {
   })
   @IsOptional()
   phone: string;
+
+  @ApiProperty({
+    description: '신청자 이름',
+    example: '덩야오쭈',
+  })
+  @IsString()
+  @IsOptional()
+  name: string;
 }
