@@ -57,7 +57,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     ApplicationFormModule,
     AttachmentsModule,
     BannersModule,
-
+    ConsultationRequestModule,
+    StaffModule,
+    UsersModule,
+    AuthModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
