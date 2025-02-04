@@ -11,7 +11,7 @@ export class CreatePostDto {
   language: string;
   @IsDate()
   @IsOptional()
-  expiredAt: Date;
+  expiredDate: Date;
   @IsString()
   @IsOptional()
   imagePath: string;

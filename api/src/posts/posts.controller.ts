@@ -23,7 +23,7 @@ import { AttachmentsService } from 'src/attachments/attachments.service';
 import { Request, Response } from 'express';
 import { Multer } from 'multer';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { multerDiskOptions } from 'src/common/multer-diskoptions';
+import { ImageDiskOptions } from 'src/common/multer-imageDiskoptions';
 import {
   ApiBody,
   ApiConsumes,
@@ -33,6 +33,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
 
 @ApiTags('Post')
 @Controller('posts')
@@ -64,10 +65,10 @@ export class PostsController {
         content: '<p>asdf</p>',
         author: 'admin',
         category: 'notice',
-        createdAt: '2025-01-31T15:12:47.145Z',
-        updatedAt: '2025-01-31T15:12:58.281Z',
+        createdDate: '2025-01-31T15:12:47.145Z',
+        updatedDate: '2025-01-31T15:12:58.281Z',
         language: 'korean',
-        expiredAt: null,
+        expiredDate: null,
       },
       files: [],
     },
@@ -125,10 +126,10 @@ export class PostsController {
           content: '<p>asdf</p>',
           author: 'admin',
           category: 'notice',
-          createdAt: '2025-01-31T15:12:47.145Z',
-          updatedAt: '2025-01-31T15:12:58.281Z',
+          createdDate: '2025-01-31T15:12:47.145Z',
+          updatedDate: '2025-01-31T15:12:58.281Z',
           language: 'korean',
-          expiredAt: null,
+          expiredDate: null,
         },
       ],
       currentPage: 1,
@@ -167,7 +168,7 @@ export class PostsController {
         title: { type: 'string' },
         content: { type: 'string' },
         language: { type: 'string' },
-        expiredAt: { type: 'Date', description: '필수 아님' },
+        expiredDate: { type: 'Date', description: '필수 아님' },
         imagePath: {
           type: 'string',
           description:
@@ -180,13 +181,13 @@ export class PostsController {
     example: { message: '글이 작성되었습니다.' },
   })
   @Post() //완료
-  @UseInterceptors(FilesInterceptor('file', 10, multerDiskOptions))
+  @UseInterceptors(FilesInterceptor('file', 10, FileDiskOptions))
   async create(
     @Body() createPostDto: CreatePostDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     const author = 'admin'; //guard 생성시 삭제
-    await this.postsService.create(files, createPostDto, author);
+    await this.postsService.create(files,createPostDto, author);
     return { message: '글이 작성되었습니다.' };
   }
 
@@ -205,7 +206,7 @@ export class PostsController {
         title: { type: 'string' },
         content: { type: 'string' },
         language: { type: 'string' },
-        expiredAt: { type: 'Date', description: '필수 아님' },
+        expiredDate: { type: 'Date', description: '필수 아님' },
         imagePath: {
           type: 'string',
           description:
@@ -218,7 +219,6 @@ export class PostsController {
     example: { message: '글이 수정되었습니다.' },
   })
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('file', 10, multerDiskOptions))
   async update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
     await this.postsService.update(id, updatePostDto);
     return { message: '글이 수정되었습니다.' };

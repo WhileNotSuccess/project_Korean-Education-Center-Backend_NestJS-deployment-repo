@@ -4,7 +4,7 @@ export class CreateBannerDto {
     @IsString()
     language:string
     @IsDate()
-    expiredAt:Date
+    expiredDate:Date
     @IsString()
     url:string
 }

@@ -10,10 +10,15 @@ import {
   NotFoundException,
   HttpException,
   HttpStatus,
+  Get,
+  Body,
+  Put,
+  Patch
 } from '@nestjs/common';
+import { Response } from 'express';
 import { AttachmentsService } from './attachments.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerDiskOptions } from 'src/common/multer-diskoptions';
+import { ImageDiskOptions } from 'src/common/multer-imageDiskoptions';
 import {
   ApiBody,
   ApiConsumes,
@@ -21,6 +26,8 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
+import { Cron } from '@nestjs/schedule';
 
 @Controller('attachments')
 export class AttachmentsController {
@@ -43,18 +50,19 @@ export class AttachmentsController {
   })
   @ApiResponse({
     example: {
-      message: '파일이 저장되었습니다.',
+      message: '이미지가 저장되었습니다.',
       url: '20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
     },
   })
-  @Post()
-  @UseInterceptors(FileInterceptor('image', multerDiskOptions))
+  @Post('image')
+  @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async createImage(@UploadedFile() file: Express.Multer.File) {
     return {
-      message: '파일이 저장되었습니다.',
+      message: '이미지가 저장되었습니다.',
       url: file.filename,
     };
   }
+
 
   @ApiOperation({ summary: '파일삭제' })
   @ApiParam({
@@ -69,5 +77,41 @@ export class AttachmentsController {
   @Delete(':filename')
   async deleteFile(@Param('filename') filename: string) {
     return await this.attachmentsService.deleteFileAndAttachments(filename);
+  }
+  
+  @ApiOperation({summary:'파일 다운로드'})
+  @ApiParam({name:'filename',example:'20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png'})
+  @ApiResponse({example:{
+    download:'files'
+  }})
+  @Get(':filename') //다운로드 
+  async downloadFile(@Res() res:Response,@Param('filename') filename:string){
+    return res.download(`/files/${filename}`)
+  }
+
+  @ApiOperation({summary:'글 수정 중 파일 업로드'})
+  @ApiParam({
+    name:'id',example:1
+  })
+  @ApiBody({
+    schema:{
+      type:'object',
+      properties:{
+        file:{type:'string',format:'binary'}
+      }
+    }
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({example:{message:'파일 추가 완료'}})
+  @Post(':id')
+  @UseInterceptors(FileInterceptor('file',FileDiskOptions))
+  async addAttachmentFile(@Param() id:number,@UploadedFile() file:Express.Multer.File){
+    await this.attachmentsService.addAttachmentFile(id,file)
+    return {message:'파일 추가 완료'}
+  }
+
+  @Cron('0 0 4 * * 4') // 목요일 4시에 작동
+  async deleteRestedFiles(){
+    await this.attachmentsService.deleteNotUsedFiles()
   }
 }
