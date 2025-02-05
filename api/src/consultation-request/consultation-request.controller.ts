@@ -41,6 +41,7 @@ export class ConsultationRequestController {
           phone: '010-7553-4001',
           email: 'example@gmail.com',
           schedule: '2025-02-03 05:21:40.630949',
+          name: '문성윤',
           isDone: true,
         },
       ],

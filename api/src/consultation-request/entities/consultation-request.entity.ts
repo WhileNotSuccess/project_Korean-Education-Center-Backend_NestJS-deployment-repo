@@ -12,4 +12,6 @@ export class ConsultationRequest {
   isDone: boolean;
   @Column({ length: 13 })
   phone: string;
+  @Column({ length: 100 })
+  name: string;
 }

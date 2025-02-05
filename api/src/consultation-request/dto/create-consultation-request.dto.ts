@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsEmail, Matches } from 'class-validator';
+import { IsDate, IsEmail, IsString, Matches } from 'class-validator';
 
 export class CreateConsultationRequestDto {
   @ApiProperty({
@@ -21,4 +21,11 @@ export class CreateConsultationRequestDto {
   })
   @IsDate()
   schedule: Date;
+
+  @ApiProperty({
+    description: '신청자 이름',
+    example: '덩야오쭈',
+  })
+  @IsString()
+  name: string;
 }
