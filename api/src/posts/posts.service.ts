@@ -10,8 +10,7 @@ import { transactional } from 'src/common/utils/transaction-helper';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as mime from 'mime-types';
-import { AttachmentsController } from 'src/attachments/attachments.controller';
-import { json } from 'stream/consumers';
+import { query } from 'express';
 import { Attachment } from 'src/attachments/entities/attachment.entity';
 
 @Injectable()
@@ -24,7 +23,7 @@ export class PostsService {
 
   async getOne(find: number | string, language: string) {
     let post: Post;
-
+    
     switch (
       typeof find //find의 타입 확인해서 string(안내글)과 number(게시글) 분류
     ) {
@@ -36,7 +35,7 @@ export class PostsService {
           .from(Post, 'posts') //Post테이블에서 정보 다 받아오고
           .where('category LIKE :category', { category: find })
           .andWhere('language LIKE :language', { language }) // 그때 받는 조건 2개
-          .orderBy('updatedAt', 'DESC')
+          .orderBy('updatedDate', 'DESC')
           .getOne(); // 최신순 정렬로 하나만 받아옴
         break;
       case 'number': //게시글 찾을 경우
@@ -57,7 +56,7 @@ export class PostsService {
       where: { category, language },
       skip: (page - 1) * take,
       take,
-      order: { updatedAt: 'DESC' },
+      order: { updatedDate: 'DESC' },
     });
     if (total == 0) {
       throw new BadRequestException(
@@ -119,7 +118,7 @@ export class PostsService {
       const oldSrcList = []; // 기존에 게시글에 있던 이미지 경로들
       let match;
       while ((match = regex.exec(html)) !== null) {
-        oldSrcList.push(match[1]);
+        oldSrcList.push(match[1]); // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장
       }
       const newHtml = updatePostDto.content;
       const newSrcList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
@@ -133,7 +132,7 @@ export class PostsService {
       if (deleteTarget) {
         let array = [];
         for (let i in deleteTarget) {
-          const targetFile = deleteTarget[i].replace(
+          const targetFile = deleteTarget[i].replace( //src 속성에 있던 백엔드 주소를 삭제
             `${process.env.BACKEND_URL}/`,
             '',
           );
@@ -169,6 +168,7 @@ export class PostsService {
   async remove(id: number) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
+      await queryRunner.manager.delete(Attachment,{postId:id})
     });
   }
 }

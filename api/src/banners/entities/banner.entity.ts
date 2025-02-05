@@ -10,7 +10,7 @@ export class Banner {
   @Column({ type: 'enum', enum: Language, default: Language.KOREAN })
   language: string;
   @Column()
-  expiredAt: Date;
+  expiredDate: Date;
   @Column({ length: 80 })
   url: string; // 이미지 클릭시 이동할 url
 }

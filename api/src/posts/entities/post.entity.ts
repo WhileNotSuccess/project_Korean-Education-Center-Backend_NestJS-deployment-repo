@@ -22,13 +22,13 @@ export class Post {
   @Column({ length: 25 })
   category: string;
   @CreateDateColumn()
-  createdAt: Date;
+  createdDate: Date;
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedDate: Date;
   @Column({ type: 'enum', enum: Language, default: Language.KOREAN })
   language: string;
   @Column({ nullable: true })
-  expiredAt: Date;
+  expiredDate: Date;
   @OneToMany(() => Attachment, (attach) => attach.postId, {
     onDelete: 'CASCADE',
   })
