@@ -23,7 +23,7 @@ export class PostsService {
 
   async getOne(find: number | string, language: string) {
     let post: Post;
-    
+
     switch (
       typeof find //find의 타입 확인해서 string(안내글)과 number(게시글) 분류
     ) {
@@ -132,7 +132,8 @@ export class PostsService {
       if (deleteTarget) {
         let array = [];
         for (let i in deleteTarget) {
-          const targetFile = deleteTarget[i].replace( //src 속성에 있던 백엔드 주소를 삭제
+          const targetFile = deleteTarget[i].replace(
+            //src 속성에 있던 백엔드 주소를 삭제
             `${process.env.BACKEND_URL}/`,
             '',
           );
@@ -168,7 +169,6 @@ export class PostsService {
   async remove(id: number) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
-      await queryRunner.manager.delete(Attachment,{postId:id})
     });
   }
 }
