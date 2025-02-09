@@ -22,6 +22,7 @@ import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PostImages } from './attachments/entities/post-images.entity';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ScheduleModule } from '@nestjs/schedule';
           ConsultationRequest,
           Staff,
           User,
+          PostImages,
         ],
         synchronize: true,
       }),

@@ -4,10 +4,10 @@ import * as fs from 'fs';
 import * as moment from 'moment-timezone';
 import path, { extname, join } from 'path';
 import * as uuid from 'uuid';
-import * as mime from 'mime-types'
+import * as mime from 'mime-types';
 
-const refuseFiletype = /^(application\/(x-sh|x-msdownload|javascript|php|octet-stream)|text\/(html|plain|javascript|x-script)|image\/(svg\+xml|vnd\.microsoft\.icon))$/i;
-
+const refuseFiletype =
+  /^(application\/(x-sh|x-msdownload|javascript|php|octet-stream)|text\/(html|plain|javascript|x-script)|image\/(svg\+xml|vnd\.microsoft\.icon))$/i;
 
 export const FileDiskOptions = {
   fileFilter: (req, file, cb) => {
@@ -40,9 +40,12 @@ export const FileDiskOptions = {
       // file을 uploads파일에서 찾아서 그 정보를 가져오는 식으로 변경
 
       const time = moment().tz('Asia/Seoul').format('YYYYMMDD-HHmmss'); //업로드한 날짜 받아오기
+      file.originalname = Buffer.from(file.originalname, 'ascii').toString(
+        'utf8',
+      );
       const returner = `${time}_${file.originalname}`; //날짜와 원본파일명을 합쳐서 저장될 파일명 작성
       // 파일 이름을 저장할때의 로직=> 영어로 받을지 확인하고 수정할 것
-      cb(null, returner); 
+      cb(null, returner);
     },
   }),
   limits: { fileSize: 50 * 1024 * 1024 }, //50MB

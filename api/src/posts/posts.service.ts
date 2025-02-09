@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as mime from 'mime-types';
 import { query } from 'express';
 import { Attachment } from 'src/attachments/entities/attachment.entity';
+import * as levenshtein from 'fast-levenshtein';
 
 @Injectable()
 export class PostsService {
@@ -23,7 +24,7 @@ export class PostsService {
 
   async getOne(find: number | string, language: string) {
     let post: Post;
-    
+
     switch (
       typeof find //find의 타입 확인해서 string(안내글)과 number(게시글) 분류
     ) {
@@ -132,7 +133,8 @@ export class PostsService {
       if (deleteTarget) {
         let array = [];
         for (let i in deleteTarget) {
-          const targetFile = deleteTarget[i].replace( //src 속성에 있던 백엔드 주소를 삭제
+          const targetFile = deleteTarget[i].replace(
+            //src 속성에 있던 백엔드 주소를 삭제
             `${process.env.BACKEND_URL}/`,
             '',
           );
@@ -168,7 +170,82 @@ export class PostsService {
   async remove(id: number) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
-      await queryRunner.manager.delete(Attachment,{postId:id})
     });
+  }
+
+  async search(
+    category: string,
+    page: number,
+    limit: number,
+    title?: string,
+    author?: string,
+    content?: string,
+  ) {
+    const queryBuilder = this.datasource.manager.createQueryBuilder();
+    queryBuilder.from(Post, 'post');
+    queryBuilder.where('category = :category', { category });
+    queryBuilder.select('*');
+    let results = await queryBuilder.getRawMany();
+
+    if (title) {
+      results = results
+        .map((post) => ({
+          post,
+          include: (post.title as string).indexOf(title) !== -1,
+          distance: levenshtein.get(post.title, title),
+        }))
+        .sort(this.sort)
+        .map((entry) => entry.post);
+    }
+    if (author) {
+      results = results
+        .map((post) => ({
+          post,
+          include: (post.author as string).indexOf(author) !== -1,
+          distance: levenshtein.get(post.author, author),
+        }))
+        .sort(this.sort)
+        .map((entry) => entry.post);
+    }
+    if (content) {
+      results = results
+        .map((post) => ({
+          post,
+          include: (post.content as string).indexOf(content) !== -1,
+          distance: levenshtein.get(post.content, content),
+        }))
+        .sort(this.sort)
+        .map((entry) => entry.post);
+    }
+    // 페이지가 1인 경우 limit * 0 ~ limit * 1 - 1 까지
+
+    const totalPage = Math.ceil(results.length / limit);
+    const nextPage = page < totalPage ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
+
+    return {
+      message: `검색결과를 불러왔습니다.`,
+      data: results.slice(limit * (page - 1), limit * page),
+      currentPage: page,
+      prevPage,
+      nextPage,
+      totalPage,
+    };
+  }
+  private sort(a, b) {
+    console.log(a);
+    console.log(b);
+    if ((a.include && b.include) || (!a.include && !b.include)) {
+      if (a.distance === b.distance) {
+        return a.post.id - b.post.id;
+      }
+      return a.distance - b.distance;
+    }
+    if (a.include && !b.include) {
+      return -1;
+    }
+    if (!a.include && b.include) {
+      return 1;
+    }
   }
 }
