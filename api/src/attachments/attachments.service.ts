@@ -81,19 +81,19 @@ export class AttachmentsService {
     const [
       usedFilesAttachments,
       usedFilesBanner,
-      usedFilesApplication,
+      usedFilesApplicationAttachment,
       usedFilesPost,
       usedFilesPostImages,
     ] = await Promise.all([
       this.dataSource.manager.find(Attachment, { select: ['filename'] }),
       this.dataSource.manager.find(Banner, { select: ['image'] }),
-      this.dataSource.manager.find(ApplicationForm, { select: ['filename'] }),
+      this.dataSource.manager.find(ApplicationAttachment, { select: ['filename'] }),
       this.dataSource.manager.find(Post, { select: ['content'] }),
       this.dataSource.manager.find(PostImages, { select: ['filename'] }),
     ]); //join 해서 받아오기
     const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
     const SrcList = [
-      ...usedFilesApplication.map((item) => {
+      ...usedFilesApplicationAttachment.map((item) => {
         return item.filename;
       }),
       ...usedFilesAttachments.map((item) => {
