@@ -89,27 +89,6 @@ export class AttachmentsController {
     return res.download(`/files/${filename}`)
   }
 
-  @ApiOperation({summary:'글 수정 중 파일 업로드'})
-  @ApiParam({
-    name:'id',example:1
-  })
-  @ApiBody({
-    schema:{
-      type:'object',
-      properties:{
-        file:{type:'string',format:'binary'}
-      }
-    }
-  })
-  @ApiConsumes('multipart/form-data')
-  @ApiResponse({example:{message:'파일 추가 완료'}})
-  @Post(':id')
-  @UseInterceptors(FileInterceptor('file',FileDiskOptions))
-  async addAttachmentFile(@Param() id:number,@UploadedFile() file:Express.Multer.File){
-    await this.attachmentsService.addAttachmentFile(id,file)
-    return {message:'파일 추가 완료'}
-  }
-
   @Cron('0 0 4 * * 4') // 목요일 4시에 작동
   async deleteRestedFiles(){
     await this.attachmentsService.deleteNotUsedFiles()

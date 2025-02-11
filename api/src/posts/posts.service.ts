@@ -1,24 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { DataSource, UpdateResult } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { AttachmentsService } from 'src/attachments/attachments.service';
 import { Multer } from 'multer';
 import * as fs from 'fs';
 import { transactional } from 'src/common/utils/transaction-helper';
-import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as mime from 'mime-types';
-import { query } from 'express';
-import { Attachment } from 'src/attachments/entities/attachment.entity';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly datasource: DataSource,
-    private readonly attachmentService: AttachmentsService,
-    private readonly config: ConfigService,
+    private readonly attachmentService: AttachmentsService
   ) {}
 
   async getOne(find: number | string, language: string) {
@@ -109,7 +105,7 @@ export class PostsService {
     });
   }
 
-  async update(id: number, updatePostDto: UpdatePostDto) {
+  async update(id: number, updatePostDto: UpdatePostDto,files:Express.Multer.File[]) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       // 기존 게시글의 이미지를 전부 추출
       const oldPost = await queryRunner.manager.findOneBy(Post, { id });
@@ -162,13 +158,13 @@ export class PostsService {
       }
       const { imagePath, ...newPost } = updatePostDto;
       await queryRunner.manager.update(Post, id, newPost);
+      await this.attachmentService.create(files,id,queryRunner)
     });
   }
 
   async remove(id: number) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
-      await queryRunner.manager.delete(Attachment,{postId:id})
     });
   }
 }

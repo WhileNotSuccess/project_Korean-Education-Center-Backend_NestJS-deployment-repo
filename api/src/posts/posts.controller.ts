@@ -200,7 +200,7 @@ export class PostsController {
         file: {
           type: 'string',
           format: 'binary',
-          description: '첨부파일, 필수아님',
+          description: '새로 추가하는 첨부파일, 필수아님',
         },
         category: { type: 'string' },
         title: { type: 'string' },
@@ -218,9 +218,10 @@ export class PostsController {
   @ApiResponse({
     example: { message: '글이 수정되었습니다.' },
   })
+  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
-    await this.postsService.update(id, updatePostDto);
+  async update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto,@UploadedFiles() files:Express.Multer.File[]) {
+    await this.postsService.update(id, updatePostDto,files);
     return { message: '글이 수정되었습니다.' };
   }
 

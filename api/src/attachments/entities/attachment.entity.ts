@@ -20,8 +20,6 @@ export class Attachment {
   fileType: string;
   @Column()
   fileSize: number;
-  @CreateDateColumn()
-  createdDate: Date;
   @ManyToOne(() => Post, (post) => post.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   posts: Post;

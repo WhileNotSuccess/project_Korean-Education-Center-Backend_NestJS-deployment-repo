@@ -11,8 +11,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { transactional } from 'src/common/utils/transaction-helper';
 import { Banner } from 'src/banners/entities/banner.entity';
-import { ApplicationForm } from 'src/application-form/entities/application-form.entity';
 import { Post } from 'src/posts/entities/post.entity';
+import { ApplicationAttachment } from 'src/application-attachments/entities/application-attachment.entity';
 
 @Injectable()
 export class AttachmentsService {
@@ -63,26 +63,19 @@ export class AttachmentsService {
     return { message: '파일이 성공적으로 삭제되었습니다.' };
   }
 
-  async addAttachmentFile(postId:number,file:Express.Multer.File){
-    await transactional(this.dataSource,async queryRunner=>{
-      await queryRunner.manager.save(Attachment,{
-        postId,
-        filename: file.filename,
-        fileType: file.mimetype,
-        fileSize: file.size,})
-    })
-  }
-
 
   async deleteNotUsedFiles(){
     const storedFiles=fs.readdirSync(`/files`)
 
-    const [usedFilesAttachments,usedFilesBanner,usedFilesApplication,usedFilesPost]=await Promise.all([
+    const [
+      usedFilesAttachments,usedFilesBanner,usedFilesApplication,
+      usedFilesPost]=await Promise.all([
       this.dataSource.manager.find(Attachment,{select:['filename']}),
       this.dataSource.manager.find(Banner,{select:['image']}),
-      this.dataSource.manager.find(ApplicationForm,{select:['filename']}),
+      this.dataSource.manager.find(ApplicationAttachment,{select:['filename']}),
       this.dataSource.manager.find(Post,{select:['content']})
     ])//join 해서 받아오기
+
     const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
     const SrcList=[
       ...usedFilesApplication.map(item=>{return item.filename}),
@@ -94,7 +87,7 @@ export class AttachmentsService {
     (usedFilesPost.map(item=>{
       while ((match = regex.exec(item.content)) !== null) {
           if(!(match[1][0]==='d')){
-            SrcList.push(match[1].replace(`${process.env.BACKEND_URL}`,'')); 
+            SrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); 
             // // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장, 백엔드 주소 제거해서 SrcList에 저장
           }
         }
