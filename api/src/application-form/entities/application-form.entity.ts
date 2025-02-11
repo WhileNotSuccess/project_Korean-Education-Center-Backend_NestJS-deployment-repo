@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ApplicationAttachment } from "../..//application-attachments/entities/application-attachment.entity";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({name:'ApplicationForm'})
 export class ApplicationForm {
@@ -6,16 +7,12 @@ export class ApplicationForm {
     id:number
     @Column()
     userId:number
-    @Column({length:100})
-    filename:string
     @Column({length:20})
     course:string
     @CreateDateColumn()
     createdDate:Date
-    @Column({length:75})
-    filetype:string
-    @Column()
-    fileSize:number
-    @Column()
+    @Column({default:false})
     isDone:boolean
+    @OneToMany(()=>ApplicationAttachment,(attachment)=>attachment.applicationId,{onDelete:'CASCADE'})
+    applicationAttchment:ApplicationAttachment[]
 }

@@ -1,4 +1,4 @@
-import { Language } from 'src/common/language.enum';
+import { Language } from '../../common/language.enum';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'Banner' })

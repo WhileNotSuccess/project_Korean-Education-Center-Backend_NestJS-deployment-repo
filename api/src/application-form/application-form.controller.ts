@@ -10,11 +10,12 @@ import {
   UploadedFile,
   Query,
   DefaultValuePipe,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ApplicationFormService } from './application-form.service';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';
 import { UpdateApplicationFormDto } from './dto/update-application-form.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
 import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
@@ -30,8 +31,8 @@ export class ApplicationFormController {
     schema:{
       type:'object',
       properties:{
-        file:{
-          type:'string',
+        files:{
+          type:'string[]',
           format:'binary',
           description:'입학 신청서류'
         },
@@ -46,13 +47,13 @@ export class ApplicationFormController {
     }
   })
   @Post()
-  @UseInterceptors(FileInterceptor('file',FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   async createApplication(
     @Body() CreateApplicationFormDto:CreateApplicationFormDto,
-    @UploadedFile() file:Express.Multer.File
+    @UploadedFiles() files:Express.Multer.File[]
   ){
     const userId=1 // guard 적용 후 삭제
-    await this.applicationFormService.create(CreateApplicationFormDto,file,userId)
+    await this.applicationFormService.create(CreateApplicationFormDto,files,userId)
     return {message:'입학신청이 접수되었습니다.'}
   }
 
@@ -72,11 +73,8 @@ export class ApplicationFormController {
         {
           id:1,
           userId:1,
-          filename:'20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
           course:'korean',
           createdDate:'2025-01-31T15:12:47.145Z',
-          filetype:'image/png',
-          fileSize:300,
           isDone:false
         }
       ],
@@ -95,18 +93,20 @@ export class ApplicationFormController {
     return await this.applicationFormService.findPagination(limit,page,ignore)
   }
 
+
   @ApiOperation({summary:'입학 신청 수정'})
   @ApiBody({
     schema:{
       type:'object',
       properties:{
         file:{
-          type:'string',
+          type:'string[]',
           format:'binary',
-          description:'입학 신청서류, 선택사항'
+          description:'새로 추가하는 입학 신청서류, 선택사항'
         },
         course:{type:'string',description:'신청 전공, 선택 사항'},
-        isDone:{type:'boolean',description:'처리 여부, 선택 사항'}
+        isDone:{type:'boolean',description:'처리 여부, 선택 사항'},
+        filePath:{type:'string',description:'삭제할 파일 제외한 기존 + 신규 첨부파일 이름 배열을 string형태로 한 것'}
       }
     }
   })
@@ -115,13 +115,13 @@ export class ApplicationFormController {
     example:{message:'입학 신청이 수정되었습니다.'}
   })
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('file',FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   async updateApplication(
     @Param('id') id:number,
-    @UploadedFile() file:Express.Multer.File,
+    @UploadedFiles() files:Express.Multer.File[], // 새로 추가되는 파일만 받음
     @Body() UpdateApplicationFormDto:UpdateApplicationFormDto
   ){
-    await this.applicationFormService.update(id,UpdateApplicationFormDto,file)
+    await this.applicationFormService.update(id,UpdateApplicationFormDto,files)
     return {message:'입학 신청이 수정되었습니다.'}
   } 
 

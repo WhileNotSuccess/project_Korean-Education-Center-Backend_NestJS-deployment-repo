@@ -96,6 +96,7 @@ export class AttachmentsController {
     return res.download(`/files/${filename}`);
   }
 
+
   @ApiOperation({ summary: '글 수정 중 파일 업로드' })
   @ApiParam({
     name: 'id',

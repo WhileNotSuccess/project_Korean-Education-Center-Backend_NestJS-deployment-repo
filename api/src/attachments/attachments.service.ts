@@ -11,8 +11,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { transactional } from 'src/common/utils/transaction-helper';
 import { Banner } from 'src/banners/entities/banner.entity';
-import { ApplicationForm } from 'src/application-form/entities/application-form.entity';
 import { Post } from 'src/posts/entities/post.entity';
+import { ApplicationAttachment } from 'src/application-attachments/entities/application-attachment.entity';
 import { PostImages } from './entities/post-images.entity';
 
 @Injectable()
@@ -63,6 +63,7 @@ export class AttachmentsService {
     return { message: '파일이 성공적으로 삭제되었습니다.' };
   }
 
+
   async addAttachmentFile(postId: number, file: Express.Multer.File) {
     await transactional(this.dataSource, async (queryRunner) => {
       await queryRunner.manager.save(Attachment, {
@@ -109,10 +110,10 @@ export class AttachmentsService {
 
     usedFilesPost.map((item) => {
       while ((match = regex.exec(item.content)) !== null) {
-        if (!(match[1][0] === 'd')) {
-          SrcList.push(match[1].replace(`${process.env.BACKEND_URL}`, ''));
-          // // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장, 백엔드 주소 제거해서 SrcList에 저장
-        }
+          if(!(match[1][0]==='d')){
+            SrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); 
+            // // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장, 백엔드 주소 제거해서 SrcList에 저장
+          }
       }
     });
     //SrcList 에 사용된 src속성의 파일이름들을 저장

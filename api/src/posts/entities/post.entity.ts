@@ -2,14 +2,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Attachment } from '../../attachments/entities/attachment.entity';
-import { Language } from 'src/common/language.enum';
+import { Language } from '../../common/language.enum';
 
 @Entity({ name: 'posts' })
+@Index("pagination_Index",["category","language"])
 export class Post {
   @PrimaryGeneratedColumn()
   id: number;

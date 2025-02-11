@@ -22,7 +22,10 @@ import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ApplicationAttachmentsModule } from './application-attachments/application-attachments.module';
+import { ApplicationAttachment } from './application-attachments/entities/application-attachment.entity';
 import { PostImages } from './attachments/entities/post-images.entity';
+
 
 @Module({
   imports: [
@@ -47,18 +50,20 @@ import { PostImages } from './attachments/entities/post-images.entity';
           ApplicationForm,
           Attachment,
           Banner,
+          ApplicationAttachment,
           ConsultationRequest,
           Staff,
           User,
           PostImages,
         ],
-        synchronize: true,
+        synchronize: false,
       }),
     }),
     PostsModule,
     ApplicationFormModule,
     AttachmentsModule,
     BannersModule,
+    ApplicationAttachmentsModule,
     ConsultationRequestModule,
     StaffModule,
     UsersModule,
