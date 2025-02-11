@@ -42,6 +42,68 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly attachmentService: AttachmentsService,
   ) {}
+  @ApiOperation({ summary: '검색하기' })
+  @ApiQuery({
+    name: 'title',
+    example: '공지사항',
+    description: '제목',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'content',
+    example: '내용',
+    description: '게시글 내부 내용',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'category',
+    example: 'notice',
+    description: '카테고리',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'author',
+    example: 'admin',
+    description: '작성자',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    example: 10,
+    required: false,
+    default: 10,
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    required: false,
+    default: 1,
+  })
+  @Get('search')
+  async search(
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+    @Query('category') category: string,
+    @Query('title') title?: string,
+    @Query('author') author?: string,
+    @Query('content') content?: string,
+  ) {
+    const filter = { title, author, content };
+    const selectedFilters = Object.values(filter).filter((value) => value);
+    if (selectedFilters.length !== 1) {
+      throw new BadRequestException(
+        'category, title, author, content 중 하나만 선택해야 합니다.',
+      );
+    }
+    return await this.postsService.search(
+      category,
+      page,
+      limit,
+      title,
+      author,
+      content,
+    );
+  }
 
   @ApiOperation({ summary: '하나의 post 가져오기' })
   @ApiQuery({
@@ -187,7 +249,7 @@ export class PostsController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     const author = 'admin'; //guard 생성시 삭제
-    await this.postsService.create(files,createPostDto, author);
+    await this.postsService.create(files, createPostDto, author);
     return { message: '글이 작성되었습니다.' };
   }
 

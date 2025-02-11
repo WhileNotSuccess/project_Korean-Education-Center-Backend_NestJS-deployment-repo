@@ -24,6 +24,8 @@ import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApplicationAttachmentsModule } from './application-attachments/application-attachments.module';
 import { ApplicationAttachment } from './application-attachments/entities/application-attachment.entity';
+import { PostImages } from './attachments/entities/post-images.entity';
+
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { ApplicationAttachment } from './application-attachments/entities/applic
           ConsultationRequest,
           Staff,
           User,
+          PostImages,
         ],
         synchronize: false,
       }),
