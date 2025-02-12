@@ -12,7 +12,4 @@ export class CreatePostDto {
   @IsDate()
   @IsOptional()
   expiredDate: Date;
-  @IsString()
-  @IsOptional()
-  imagePath: string;
 }

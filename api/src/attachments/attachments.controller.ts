@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger';
 import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
 import { Cron } from '@nestjs/schedule';
+import { CreateApplicationFormDto } from 'src/application-form/dto/create-application-form.dto';
 
 @Controller('attachments')
 export class AttachmentsController {
@@ -54,28 +55,13 @@ export class AttachmentsController {
       url: '20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
     },
   })
-  @Post('image')
+  @Post()
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async createImage(@UploadedFile() file: Express.Multer.File) {
     return {
       message: '이미지가 저장되었습니다.',
       url: file.filename,
     };
-  }
-
-  @ApiOperation({ summary: '파일삭제' })
-  @ApiParam({
-    name: 'filename',
-    example: '20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
-  })
-  @ApiResponse({
-    example: {
-      message: '파일이 성공적으로 삭제되었습니다.',
-    },
-  })
-  @Delete(':filename')
-  async deleteFile(@Param('filename') filename: string) {
-    return await this.attachmentsService.deleteFileAndAttachments(filename);
   }
 
   @ApiOperation({ summary: '파일 다운로드' })
@@ -96,34 +82,9 @@ export class AttachmentsController {
     return res.download(`/files/${filename}`);
   }
 
-
-  @ApiOperation({ summary: '글 수정 중 파일 업로드' })
-  @ApiParam({
-    name: 'id',
-    example: 1,
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: { type: 'string', format: 'binary' },
-      },
-    },
-  })
-  @ApiConsumes('multipart/form-data')
-  @ApiResponse({ example: { message: '파일 추가 완료' } })
-  @Post(':id')
-  @UseInterceptors(FileInterceptor('file', FileDiskOptions))
-  async addAttachmentFile(
-    @Param() id: number,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    await this.attachmentsService.addAttachmentFile(id, file);
-    return { message: '파일 추가 완료' };
-  }
-
   @Cron('0 0 4 * * 4') // 목요일 4시에 작동
   async deleteRestedFiles() {
     await this.attachmentsService.deleteNotUsedFiles();
   }
+
 }

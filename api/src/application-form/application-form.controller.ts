@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseInterceptors,
-  UploadedFile,
   Query,
   DefaultValuePipe,
   UploadedFiles,
@@ -17,9 +16,9 @@ import { CreateApplicationFormDto } from './dto/create-application-form.dto';
 import { UpdateApplicationFormDto } from './dto/update-application-form.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
-import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiConsumes('application-form')
+@ApiTags('ApplicationForm')
 @Controller('application-form')
 export class ApplicationFormController {
   constructor(
@@ -31,8 +30,8 @@ export class ApplicationFormController {
     schema:{
       type:'object',
       properties:{
-        files:{
-          type:'string[]',
+        file:{
+          type:'string',
           format:'binary',
           description:'입학 신청서류'
         },
@@ -100,13 +99,13 @@ export class ApplicationFormController {
       type:'object',
       properties:{
         file:{
-          type:'string[]',
+          type:'string',
           format:'binary',
-          description:'새로 추가하는 입학 신청서류, 선택사항'
+          description:'새로 추가하는 입학 신청서류, 서류가 없을 경우 필수 아님'
         },
-        course:{type:'string',description:'신청 전공, 선택 사항'},
-        isDone:{type:'boolean',description:'처리 여부, 선택 사항'},
-        filePath:{type:'string',description:'삭제할 파일 제외한 기존 + 신규 첨부파일 이름 배열을 string형태로 한 것'}
+        course:{type:'string',description:'신청 전공, 필수 아님'},
+        isDone:{type:'boolean',description:'처리 여부, 필수 아님'},
+        deleteFilePath:{type:'string',description:'삭제할 파일 이름 배열을 string형태로 한 것'}
       }
     }
   })

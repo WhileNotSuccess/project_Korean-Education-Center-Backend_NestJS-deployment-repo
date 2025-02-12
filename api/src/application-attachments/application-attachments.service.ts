@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Multer } from 'multer';
-import { CreateApplicationAttachmentDto } from './dto/create-application-attachment.dto';
-import { UpdateApplicationAttachmentDto } from './dto/update-application-attachment.dto';
 import { transactional } from 'src/common/utils/transaction-helper';
 import { DataSource, QueryRunner } from 'typeorm';
 import { ApplicationAttachment } from './entities/application-attachment.entity';
@@ -31,15 +29,10 @@ export class ApplicationAttachmentsService {
       await queryRunner.manager.delete(ApplicationAttachment,id)
     })
   }
-  async deleteByApplication(ids:number[],queryRunner:QueryRunner){
-    ids.forEach(async id=>{
-      await queryRunner.manager.delete(ApplicationAttachment,{id})
-    })
-  }
 
-  async updateFile(id:number, file:Express.Multer.File){
-    transactional(this.datasource,async queryRunner=>{
-      await queryRunner.manager.update(ApplicationAttachment,id,{filename:file.filename,fileSize:file.size,filetype:file.mimetype})
+  async deleteByApplication(filenames:string[],queryRunner:QueryRunner){
+    filenames.forEach(async filename=>{
+      await queryRunner.manager.delete(ApplicationAttachment,{filename})
     })
   }
 }

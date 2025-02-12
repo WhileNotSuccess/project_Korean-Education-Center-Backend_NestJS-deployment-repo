@@ -54,14 +54,18 @@ export class ApplicationFormService {
   }
   
   async update(id: number, updateApplicationFormDto: UpdateApplicationFormDto,files:Express.Multer.File[]) {
-    const attachments=await this.applicationAttachment.findByApplication(id)
-    const newFiles=JSON.parse(updateApplicationFormDto.filePath)
-    const deleteFilesId=attachments.map(item=>{if(!newFiles.includes(item)){return item.id}})
 
     await transactional(this.dataSource,async queryRunner=>{
-      await queryRunner.manager.update(ApplicationForm,id,updateApplicationFormDto)
-      await this.applicationAttachment.deleteByApplication(deleteFilesId,queryRunner)
-      await this.applicationAttachment.createByApplication(files,queryRunner,id)
+
+      if(updateApplicationFormDto.deleteFilePath){
+        const deleteFiles=JSON.parse(updateApplicationFormDto.deleteFilePath)
+        await this.applicationAttachment.deleteByApplication(deleteFiles,queryRunner)
+      }
+      if(!(files.length==0)){
+        await this.applicationAttachment.createByApplication(files,queryRunner,id)
+      }
+      const {deleteFilePath, ...array}=updateApplicationFormDto
+      await queryRunner.manager.update(ApplicationForm,id,array)
     })
   }
  

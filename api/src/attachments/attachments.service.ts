@@ -14,17 +14,19 @@ import { Banner } from 'src/banners/entities/banner.entity';
 import { Post } from 'src/posts/entities/post.entity';
 import { ApplicationAttachment } from 'src/application-attachments/entities/application-attachment.entity';
 import { PostImages } from './entities/post-images.entity';
+import { now } from 'moment';
+import { findFiles } from 'src/common/fileArrayFind';
 
 @Injectable()
 export class AttachmentsService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async create(
+  async createImage( // content 내부의 image의 데이터를 postImages 테이블에 저장하는 함수 
     files: Express.Multer.File[],
     postId: number,
     queryRunner: QueryRunner,
   ) {
-    for (const file of files) {
+    for (let file of files) {
       await queryRunner.manager.save(PostImages, {
         postId: postId,
         filename: file.filename,
@@ -32,11 +34,39 @@ export class AttachmentsService {
       });
     }
   }
+  async createAttahcment( // 글의 첨부파일의 데이터를 Attachment 테이블에 저장하는 함수
+    files:Express.Multer.File[],
+    postId:number,
+    queryRunner:QueryRunner
+  ){
+    for(let file of files){
+      await queryRunner.manager.save(Attachment,{
+        postId,
+        filename:file.filename,
+        fileSize:file.size,
+        fileType:file.mimetype
+      })
+    }
+  }
+
   async deleteOldImage(files: Express.Multer.File[], queryRunner: QueryRunner) {
-    for (const file of files) {
+    for (let file of files) {
       await queryRunner.manager.delete(PostImages, {
         filename: file.filename,
       });
+      const filePath=`/files/${file.filename}`
+        if (!fs.existsSync(filePath)) {
+          throw new NotFoundException('파일을 찾을 수 없습니다.');
+        }
+        fs.unlink(filePath, (error) => {
+          if (error) {
+            throw new HttpException(
+             '파일 삭제 중 오류가 발생했습니다.',
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
+        });
+      
     }
   }
 
@@ -44,35 +74,25 @@ export class AttachmentsService {
     return await this.dataSource.manager.findBy(Attachment, { postId });
   }
 
-  async deleteFileAndAttachments(filename: string) {
-    await transactional<void>(this.dataSource, async (queryRunner) => {
-      await queryRunner.manager.delete(Attachment, { filename });
-      const filePath = `/files/${filename}`;
-      if (!fs.existsSync(filePath)) {
-        throw new NotFoundException('파일을 찾을 수 없습니다.');
-      }
-      fs.unlink(filePath, (error) => {
-        if (error) {
-          throw new HttpException(
-            '파일 삭제 중 오류가 발생했습니다.',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
+  async deleteFileAndAttachments(filenames: string[],queryRunner:QueryRunner) {
+
+    for(let filename of filenames){
+      console.log(filename)
+      await queryRunner.manager.delete(Attachment,{filename})
+      const filePath=`/files/${filename}`
+        if (!fs.existsSync(filePath)) {
+          throw new NotFoundException('파일을 찾을 수 없습니다.');
         }
-      });
-    });
+        fs.unlink(filePath, (error) => {
+          if (error) {
+            throw new HttpException(
+             '파일 삭제 중 오류가 발생했습니다.',
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
+        });
+    }
     return { message: '파일이 성공적으로 삭제되었습니다.' };
-  }
-
-
-  async addAttachmentFile(postId: number, file: Express.Multer.File) {
-    await transactional(this.dataSource, async (queryRunner) => {
-      await queryRunner.manager.save(Attachment, {
-        postId,
-        filename: file.filename,
-        fileType: file.mimetype,
-        fileSize: file.size,
-      });
-    });
   }
 
   async deleteNotUsedFiles() {
@@ -110,7 +130,7 @@ export class AttachmentsService {
 
     usedFilesPost.map((item) => {
       while ((match = regex.exec(item.content)) !== null) {
-          if(!(match[1][0]==='d')){
+          if(!(match[1][0]==='d')){ // 인코딩 되어 데이터 자체가 들어간 img를 제외
             SrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); 
             // // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장, 백엔드 주소 제거해서 SrcList에 저장
           }
@@ -123,9 +143,13 @@ export class AttachmentsService {
       deleteFiles.map((item) => {
         fs.unlinkSync(`/files/${item}`);
       });
+      const deletedFile=deleteFiles.join('\t')
+      const restoreRow=`[${new Date().getDate()}]`+deletedFile
+      fs.appendFileSync('/cron_delete.txt',restoreRow+`\n`)
     } catch (e) {
       console.log(e);
     }
     //삭제된 파일명 저장해두는 파일 만들기
+
   }
 }

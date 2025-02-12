@@ -7,5 +7,6 @@ export class UpdateApplicationFormDto extends PartialType(CreateApplicationFormD
     @IsOptional()
     isDone?:boolean
     @IsString()
-    filePath:string
+    @IsOptional()
+    deleteFilePath:string
 }

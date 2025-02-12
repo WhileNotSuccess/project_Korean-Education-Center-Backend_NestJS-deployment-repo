@@ -11,8 +11,8 @@ const refuseFiletype =
 
 export const FileDiskOptions = {
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.match(refuseFiletype)) {
-      //파일 타입이 일치하면 badRequest
+    if (file.mimetype.match(refuseFiletype)||!file.mimetype) {
+      //파일 타입이 일치하거나 mimetype이 false(한글 파일 같이 해외에서 사용되지 않는 파일)이면 badRequest
       cb(
         new BadRequestException({
           message: '파일형식에러',

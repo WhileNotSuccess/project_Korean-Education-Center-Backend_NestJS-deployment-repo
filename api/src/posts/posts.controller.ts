@@ -132,7 +132,13 @@ export class PostsController {
         language: 'korean',
         expiredDate: null,
       },
-      files: [],
+      files: [{
+        id:1,
+        postId:1,
+        filename:'20250204-154557_인천대학교 한국어 교육센터 메뉴 구성.hwpx',
+        fileType:'application/octet-stream',
+        fileSize:20234
+      }],
     },
   })
   @Get()
@@ -221,21 +227,12 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-          description: '첨부파일, 필수아님',
-        },
-        category: { type: 'string' },
-        title: { type: 'string' },
-        content: { type: 'string' },
-        language: { type: 'string' },
-        expiredDate: { type: 'Date', description: '필수 아님' },
-        imagePath: {
-          type: 'string',
-          description:
-            '/attachments 로 받은 이미지 url들을 전부 배열에 넣어서 JSON.stringify()로 바꾼 결과물, 글안에 이미지가 없는 경우 필수 아님',
-        },
+        file:{type:'string',format:'binary',description:'글의 첨부파일 전부, 없을 경우 필수 아님'},
+        category: { type: 'string', description:'글의 카테고리, 필수' },
+        title: { type: 'string', description:'글의 제목, 필수' },
+        content: { type: 'string', description:'글의 내용, 필수' },
+        language: { type: 'string', description:'글의 언어, 필수' },
+        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' }
       },
     },
   })
@@ -243,13 +240,13 @@ export class PostsController {
     example: { message: '글이 작성되었습니다.' },
   })
   @Post() //완료
-  @UseInterceptors(FilesInterceptor('file', 10, FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   async create(
     @Body() createPostDto: CreatePostDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files:Express.Multer.File[]
   ) {
     const author = 'admin'; //guard 생성시 삭제
-    await this.postsService.create(files, createPostDto, author);
+    await this.postsService.create(createPostDto, author,files);
     return { message: '글이 작성되었습니다.' };
   }
 
@@ -259,29 +256,25 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-          description: '새로 추가하는 첨부파일, 필수아님',
-        },
-        category: { type: 'string' },
-        title: { type: 'string' },
-        content: { type: 'string' },
-        language: { type: 'string' },
-        expiredDate: { type: 'Date', description: '필수 아님' },
-        imagePath: {
-          type: 'string',
+        file:{type:'string',format:'binary',description:'새로 추가하는 첨부파일'},
+        category: { type: 'string', description:'글의 카테고리, 필수 아님' },
+        title: { type: 'string', description:'글의 제목, 필수 아님' },
+        content: { type: 'string', description:'글의 내용, 필수 아님' },
+        language: { type: 'string', description:'글의 언어, 필수 아님' },
+        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' },
+        deleteFilePath:{
+          type:'string',
           description:
-            '/attachments 로 받은 이미지 url들을 전부 배열에 넣어서 JSON.stringify()로 바꾼 결과물, 글안에 이미지가 없는 경우 필수 아님',
-        },
+            '/attachments 로 받은 파일 중 삭제할 파일의 url들을 전부 배열에 넣어서 JSON.stringify()로 바꾼 결과물, 삭제할 첨부파일이 없는 경우 필수 아님'
+        }
       },
     },
   })
   @ApiResponse({
     example: { message: '글이 수정되었습니다.' },
   })
-  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   @Patch(':id')
+  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
   async update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto,@UploadedFiles() files:Express.Multer.File[]) {
     await this.postsService.update(id, updatePostDto,files);
     return { message: '글이 수정되었습니다.' };
