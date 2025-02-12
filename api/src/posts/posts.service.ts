@@ -10,6 +10,7 @@ import { transactional } from 'src/common/utils/transaction-helper';
 import * as path from 'path';
 import * as mime from 'mime-types';
 import * as levenshtein from 'fast-levenshtein';
+import { findFiles } from 'src/common/fileArrayFind';
 
 @Injectable()
 export class PostsService {
@@ -75,92 +76,77 @@ export class PostsService {
     };
   }
 
-  async create(files, createPostDto: CreatePostDto, author: string) {
+  async create(createPostDto: CreatePostDto, author: string,files:Express.Multer.File[]) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
         ...createPostDto,
         author,
       }); // post 테이블 작성
-
-      if (createPostDto.imagePath) {
-        //imagePath가 있을경우
-
-        const imagePath = JSON.parse(createPostDto.imagePath); // image의 경로 배열
-        let array = []; // attachment 테이블 생성할 때 쓸 배열
-        for (let i in imagePath) {
-          const fileSize = fs.statSync(`/files/${imagePath[i]}`).size; //파일 사이즈
-          const fileExtension = path.extname(`/files/${imagePath[i]}`); // 파일 확장자
-          const mimeType = mime.lookup(fileExtension); // 파일의 mimeType
-          array.push({
-            filename: path.basename(imagePath[i]),
-            mimetype: mimeType,
-            size: fileSize,
-          }); // 객체 형태로 만들어서 multer.file타입과 비슷하게 만듬
-        }
-        await this.attachmentService.create(array, post.id, queryRunner);
+      const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+      const createFilenames:string[]=[] // 테이블에 저장할 이미지 파일의 이름을 저장
+      let match
+      if((match = regex.exec(createPostDto.content)) !== null){ // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
+        createFilenames.push((match[1]).replace(`${process.env.BACKEND_URL}/`, '',))// 백엔드 주소를 없애고 filename에 저장
       }
-
-      if (!(files.length == 0)) {
-        await this.attachmentService.create(files, post.id, queryRunner);
+      if(createFilenames){ //저장할 이미지 파일이 있는 경우
+        const array=findFiles(createFilenames) // findFiles로 이미지의 데이터를 받아와서
+        await this.attachmentService.createImage(array,post.id,queryRunner) // 테이블에 인스턴스 생성
+      }
+      if(!(files.length==0)){
+        await this.attachmentService.createAttahcment(files,post.id,queryRunner) //첨부파일 저장
       }
     });
   }
 
   async update(id: number, updatePostDto: UpdatePostDto,files:Express.Multer.File[]) {
+    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
+    const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+    const oldSrcList = []; // 기존에 게시글에 있던 이미지 경로들
+    let match;
+    while ((match = regex.exec(oldPost.content)) !== null) {
+      oldSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 
+    }
+
+    const newSrcList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
+    while ((match = regex.exec(updatePostDto.content)) !== null) {
+      newSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 );
+    }
+    // oldSrcList - newSrcList 기존에 있었는데 제거된 이미지
+    const deleteTarget: string[] = oldSrcList.filter(
+      (x) => !newSrcList.includes(x),
+    );
+    const createTarget: string[] = newSrcList.filter(
+      (x)=> !oldSrcList.includes(x)
+    )
     await transactional<void>(this.datasource, async (queryRunner) => {
       // 기존 게시글의 이미지를 전부 추출
-      const oldPost = await queryRunner.manager.findOneBy(Post, { id });
-      const html = oldPost.content;
-      const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
-      const oldSrcList = []; // 기존에 게시글에 있던 이미지 경로들
-      let match;
-      while ((match = regex.exec(html)) !== null) {
-        oldSrcList.push(match[1]); // 정규식으로 찾아 추출한 문자열이 1번 인덱스에 저장
-      }
-      const newHtml = updatePostDto.content;
-      const newSrcList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
-      while ((match = regex.exec(newHtml)) !== null) {
-        newSrcList.push(match[1]);
-      }
-      // oldSrcList - newSrcList 기존에 있었는데 제거된 이미지
-      const deleteTarget: string[] = oldSrcList.filter(
-        (x) => !newSrcList.includes(x),
-      );
+
       if (deleteTarget) {
         let array = [];
-        for (let i in deleteTarget) {
-          const targetFile = deleteTarget[i].replace(
-            //src 속성에 있던 백엔드 주소를 삭제
-            `${process.env.BACKEND_URL}/`,
-            '',
-          );
+        for (let i of deleteTarget) {
           array.push({
-            filename: path.basename(targetFile),
+            filename: path.basename(i),
           });
         }
         await this.attachmentService.deleteOldImage(array, queryRunner);
       }
-
-      // 새로운 이미지 추가
-      if (updatePostDto.imagePath) {
-        //imagePath가 있을경우
-        const imagePath = JSON.parse(updatePostDto.imagePath); // image의 경로 배열
-        let array = []; // attachment 테이블 생성할 때 쓸 배열
-        for (let i in imagePath) {
-          const fileSize = fs.statSync(`/files/${imagePath[i]}`).size; //파일 사이즈
-          const fileExtension = path.extname(`/files/${imagePath[i]}`); // 파일 확장자
-          const mimeType = mime.lookup(fileExtension); // 파일의 mimeType
-          array.push({
-            filename: path.basename(imagePath[i]),
-            mimetype: mimeType,
-            size: fileSize,
-          }); // 객체 형태로 만들어서 multer.file타입과 비슷하게 만듬
+      if(createTarget){
+        let array = [];
+        for (let i of createTarget) {
+          array.push(path.basename(i));
         }
-        await this.attachmentService.create(array, id, queryRunner);
+        const createArray=findFiles(array)
+        await this.attachmentService.createImage(createArray,id, queryRunner);
       }
-      const { imagePath, ...newPost } = updatePostDto;
+      // 새로운 이미지 추가
+
+      if(updatePostDto.deleteFilePath){
+        const deletePath=JSON.parse(updatePostDto.deleteFilePath)
+        await this.attachmentService.deleteFileAndAttachments(deletePath,queryRunner)
+      }
+      if(!(files.length==0)){await this.attachmentService.createAttahcment(files,id,queryRunner)}
+      const { deleteFilePath, ...newPost } = updatePostDto;
       await queryRunner.manager.update(Post, id, newPost);
-      await this.attachmentService.create(files,id,queryRunner)
     });
   }
 

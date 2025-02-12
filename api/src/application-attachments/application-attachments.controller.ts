@@ -1,10 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Delete } from '@nestjs/common';
 import { ApplicationAttachmentsService } from './application-attachments.service';
-import { CreateApplicationAttachmentDto } from './dto/create-application-attachment.dto';
-import { UpdateApplicationAttachmentDto } from './dto/update-application-attachment.dto';
-import { ApiConsumes, ApiExcludeController, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiConsumes('applicationAttachments')
+@ApiTags('ApplicationAttachments')
 @Controller('application-attachments')
 export class ApplicationAttachmentsController {
   constructor(private readonly applicationAttachmentsService: ApplicationAttachmentsService) {}
@@ -33,6 +31,7 @@ export class ApplicationAttachmentsController {
       file:await this.applicationAttachmentsService.findByApplication(id)
     }
   }
+
   @ApiOperation({summary:'입학신청 파일 1개 삭제하기'})
   @ApiParam({
     name:'id',
