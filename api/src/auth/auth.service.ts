@@ -28,6 +28,9 @@ export class AuthService {
     if (!user.emailVerifiedAt) {
       throw new UnauthorizedException('이메일 인증을 완료해주세요');
     }
+    if (!user.password) {
+      throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
+    }
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
