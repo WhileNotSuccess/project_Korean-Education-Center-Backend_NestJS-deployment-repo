@@ -16,7 +16,7 @@ import { findFiles } from 'src/common/fileArrayFind';
 export class PostsService {
   constructor(
     private readonly datasource: DataSource,
-    private readonly attachmentService: AttachmentsService
+    private readonly attachmentService: AttachmentsService,
   ) {}
 
   async getOne(find: number | string, language: string) {
@@ -76,48 +76,64 @@ export class PostsService {
     };
   }
 
-  async create(createPostDto: CreatePostDto, author: string,files:Express.Multer.File[]) {
+  async create(
+    createPostDto: CreatePostDto,
+    author: string,
+    files: Express.Multer.File[],
+  ) {
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
         ...createPostDto,
         author,
       }); // post 테이블 작성
       const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
-      const createFilenames:string[]=[] // 테이블에 저장할 이미지 파일의 이름을 저장
-      let match
-      if((match = regex.exec(createPostDto.content)) !== null){ // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
-        createFilenames.push((match[1]).replace(`${process.env.BACKEND_URL}/`, '',))// 백엔드 주소를 없애고 filename에 저장
+      const createFilenames: string[] = []; // 테이블에 저장할 이미지 파일의 이름을 저장
+      let match;
+      if ((match = regex.exec(createPostDto.content)) !== null) {
+        // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
+        createFilenames.push(
+          match[1].replace(`${process.env.BACKEND_URL}/`, ''),
+        ); // 백엔드 주소를 없애고 filename에 저장
       }
-      if(createFilenames){ //저장할 이미지 파일이 있는 경우
-        const array=findFiles(createFilenames) // findFiles로 이미지의 데이터를 받아와서
-        await this.attachmentService.createImage(array,post.id,queryRunner) // 테이블에 인스턴스 생성
+      if (createFilenames) {
+        //저장할 이미지 파일이 있는 경우
+        const array = findFiles(createFilenames); // findFiles로 이미지의 데이터를 받아와서
+        await this.attachmentService.createImage(array, post.id, queryRunner); // 테이블에 인스턴스 생성
       }
-      if(!(files.length==0)){
-        await this.attachmentService.createAttahcment(files,post.id,queryRunner) //첨부파일 저장
+      if (!(files.length == 0)) {
+        await this.attachmentService.createAttachment(
+          files,
+          post.id,
+          queryRunner,
+        ); //첨부파일 저장
       }
     });
   }
 
-  async update(id: number, updatePostDto: UpdatePostDto,files:Express.Multer.File[]) {
+  async update(
+    id: number,
+    updatePostDto: UpdatePostDto,
+    files: Express.Multer.File[],
+  ) {
     const oldPost = await this.datasource.manager.findOneBy(Post, { id });
     const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
     const oldSrcList = []; // 기존에 게시글에 있던 이미지 경로들
     let match;
     while ((match = regex.exec(oldPost.content)) !== null) {
-      oldSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 
+      oldSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장
     }
 
     const newSrcList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
     while ((match = regex.exec(updatePostDto.content)) !== null) {
-      newSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`,'')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 );
+      newSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 );
     }
     // oldSrcList - newSrcList 기존에 있었는데 제거된 이미지
     const deleteTarget: string[] = oldSrcList.filter(
       (x) => !newSrcList.includes(x),
     );
     const createTarget: string[] = newSrcList.filter(
-      (x)=> !oldSrcList.includes(x)
-    )
+      (x) => !oldSrcList.includes(x),
+    );
     await transactional<void>(this.datasource, async (queryRunner) => {
       // 기존 게시글의 이미지를 전부 추출
 
@@ -130,21 +146,26 @@ export class PostsService {
         }
         await this.attachmentService.deleteOldImage(array, queryRunner);
       }
-      if(createTarget){
+      if (createTarget) {
         let array = [];
         for (let i of createTarget) {
           array.push(path.basename(i));
         }
-        const createArray=findFiles(array)
-        await this.attachmentService.createImage(createArray,id, queryRunner);
+        const createArray = findFiles(array);
+        await this.attachmentService.createImage(createArray, id, queryRunner);
       }
       // 새로운 이미지 추가
 
-      if(updatePostDto.deleteFilePath){
-        const deletePath=JSON.parse(updatePostDto.deleteFilePath)
-        await this.attachmentService.deleteFileAndAttachments(deletePath,queryRunner)
+      if (updatePostDto.deleteFilePath) {
+        const deletePath = JSON.parse(updatePostDto.deleteFilePath);
+        await this.attachmentService.deleteFileAndAttachments(
+          deletePath,
+          queryRunner,
+        );
       }
-      if(!(files.length==0)){await this.attachmentService.createAttahcment(files,id,queryRunner)}
+      if (!(files.length == 0)) {
+        await this.attachmentService.createAttachment(files, id, queryRunner);
+      }
       const { deleteFilePath, ...newPost } = updatePostDto;
       await queryRunner.manager.update(Post, id, newPost);
     });
