@@ -56,11 +56,25 @@ export class AuthController {
   @Get('google/redirect')
   async googleRedirect(@Req() req, @Res() res: Response) {
     if (req.user.newUser) {
-      res.cookie('new_user', true);
+      res.cookie('new_user', true, {
+        maxAge: 60 * 60 * 1000,
+        secure: true,
+        sameSite: 'none',
+        domain: process.env.COOKIE_DOMAIN,
+      });
+    }
+    if (req.user == 1) {
+      res.redirect(`${this.frontendUrl}/need-link`);
     }
     const user = await this.usersService.findOneByEmail(req.user.email);
     const token = await this.authService.issuesAJwt(user);
-    res.cookie('access_token', token.access_token);
+    res.cookie('access_token', token.access_token, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
     res.redirect(`${this.frontendUrl}`);
   }
 
@@ -69,8 +83,16 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: SignInDto, @Res() res: Response) {
     const token = await this.authService.signIn(dto);
-    res.cookie('access_token', token.access_token);
-    res.redirect(process.env.FRONTEND_URL);
+    res.cookie('access_token', token.access_token, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
+    res.json({
+      message: 'done',
+    });
   }
 
   @ApiOperation({ summary: '일반 회원가입' })
@@ -98,7 +120,13 @@ export class AuthController {
     const user =
       await this.usersService.updateUsersEmailVerifiedAt(signupVerifyToken);
     const token = await this.authService.issuesAJwt(user);
-    res.cookie('access_token', token.access_token);
+    res.cookie('access_token', token.access_token, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
     res.redirect(process.env.FRONTEND_URL);
   }
 
@@ -129,7 +157,13 @@ export class AuthController {
     }
     await this.usersService.updateUserGoogleId(userFromJWT.id, googleId);
     const token = await this.authService.issuesAJwt(userFromJWT);
-    res.cookie('access_token', token.access_token);
+    res.cookie('access_token', token.access_token, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
     res.redirect(process.env.FRONTEND_URL);
   }
 }

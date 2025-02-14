@@ -19,7 +19,12 @@ async function bootstrap() {
   );
   app.use(cookieParser());
   app.enableCors({
-    origin: ['https://www.bapull.store', 'http://localhost:3000'],
+    origin: [
+      'https://www.bapull.store',
+      'http://localhost:3000',
+      'https://www.localhost.com',
+      'https://localhost.com',
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Accept',
     credentials: true,
