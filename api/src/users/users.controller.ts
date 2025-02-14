@@ -29,6 +29,7 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Get('info')
   async hello(@Req() req) {
+    console.log(req);
     const { password, googleId, emailVerifiedAt, signUpVerifyToken, ...user } =
       await this.usersService.findOneByEmail(req.user.email);
     return user;
@@ -51,7 +52,12 @@ export class UsersController {
     @Body() newName: UpdateUserDto,
     @Res() res: Response,
   ) {
-    res.clearCookie('new_user');
+    res.cookie('new_user', 'false', {
+      maxAge: 60 * 60 * 1000,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
     await this.usersService.updateUserName(req.user.id, newName);
 
     res.json({
