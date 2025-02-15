@@ -15,7 +15,7 @@ export class ApplicationAttachmentsController {
   @ApiResponse({
     example:{
       message:'해당 신청의 파일을 불러왔습니다.',
-      file:{
+      files:{
         id:'number',
         applicationId:'number',
         filename:'string',
@@ -25,10 +25,10 @@ export class ApplicationAttachmentsController {
     }
   })
   @Get(':id')
-  async getOne(@Param() id:number){
+  async getFiles(@Param() id:number){
     return {
       message:'해당 신청의 파일을 불러왔습니다.',
-      file:await this.applicationAttachmentsService.findByApplication(id)
+      files:await this.applicationAttachmentsService.findByApplication(id)
     }
   }
 

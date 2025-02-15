@@ -25,6 +25,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ApplicationAttachmentsModule } from './application-attachments/application-attachments.module';
 import { ApplicationAttachment } from './application-attachments/entities/application-attachment.entity';
 import { PostImages } from './attachments/entities/post-images.entity';
+import { BatchModule } from './batch/batch.module';
 
 
 @Module({
@@ -69,6 +70,7 @@ import { PostImages } from './attachments/entities/post-images.entity';
     UsersModule,
     AuthModule,
     EmailModule,
+    BatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

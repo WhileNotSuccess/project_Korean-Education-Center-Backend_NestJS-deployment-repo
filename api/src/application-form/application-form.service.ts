@@ -36,7 +36,7 @@ export class ApplicationFormService {
     const [value,total]= await queryRunner.getManyAndCount()
 
     if(total==0){
-      throw new BadRequestException(`미해결 입학신청이 존재하지 않습니다`)
+      return {message:`미해결 입학신청이 존재하지 않습니다`}
     }
 
     const totalPage = Math.ceil(total / take);

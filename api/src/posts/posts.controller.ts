@@ -227,7 +227,7 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        file:{type:'string',format:'binary',description:'글의 첨부파일 전부, 없을 경우 필수 아님'},
+        files:{type:'string',format:'binary',description:'글의 첨부파일 전부, 없을 경우 필수 아님'},
         category: { type: 'string', description:'글의 카테고리, 필수' },
         title: { type: 'string', description:'글의 제목, 필수' },
         content: { type: 'string', description:'글의 내용, 필수' },
@@ -240,7 +240,7 @@ export class PostsController {
     example: { message: '글이 작성되었습니다.' },
   })
   @Post() //완료
-  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('files',10,FileDiskOptions))
   async create(
     @Body() createPostDto: CreatePostDto,
     @UploadedFiles() files:Express.Multer.File[]
@@ -256,7 +256,7 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        file:{type:'string',format:'binary',description:'새로 추가하는 첨부파일'},
+        files:{type:'string',format:'binary',description:'새로 추가하는 첨부파일'},
         category: { type: 'string', description:'글의 카테고리, 필수 아님' },
         title: { type: 'string', description:'글의 제목, 필수 아님' },
         content: { type: 'string', description:'글의 내용, 필수 아님' },
@@ -274,7 +274,7 @@ export class PostsController {
     example: { message: '글이 수정되었습니다.' },
   })
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('files',10,FileDiskOptions))
   async update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto,@UploadedFiles() files:Express.Multer.File[]) {
     await this.postsService.update(id, updatePostDto,files);
     return { message: '글이 수정되었습니다.' };

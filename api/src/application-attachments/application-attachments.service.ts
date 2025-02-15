@@ -3,7 +3,7 @@ import { Multer } from 'multer';
 import { transactional } from 'src/common/utils/transaction-helper';
 import { DataSource, QueryRunner } from 'typeorm';
 import { ApplicationAttachment } from './entities/application-attachment.entity';
-import { error } from 'console';
+import * as fs from 'fs'
 
 @Injectable()
 export class ApplicationAttachmentsService {
@@ -25,7 +25,7 @@ export class ApplicationAttachmentsService {
   }
   
   async deleteOne(id:number){
-    transactional(this.datasource,async queryRunner=>{
+    await transactional(this.datasource,async queryRunner=>{
       await queryRunner.manager.delete(ApplicationAttachment,id)
     })
   }
@@ -33,6 +33,8 @@ export class ApplicationAttachmentsService {
   async deleteByApplication(filenames:string[],queryRunner:QueryRunner){
     filenames.forEach(async filename=>{
       await queryRunner.manager.delete(ApplicationAttachment,{filename})
+      fs.unlink(filename,e=>console.log(e))
     })
+    
   }
 }
