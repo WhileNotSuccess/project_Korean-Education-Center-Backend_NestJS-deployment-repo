@@ -14,5 +14,5 @@ export class ApplicationForm {
     @Column({default:false})
     isDone:boolean
     @OneToMany(()=>ApplicationAttachment,(attachment)=>attachment.applicationId,{onDelete:'CASCADE'})
-    applicationAttchment:ApplicationAttachment[]
+    applicationAttachment:ApplicationAttachment[]
 }

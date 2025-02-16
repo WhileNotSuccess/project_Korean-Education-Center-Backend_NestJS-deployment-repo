@@ -30,7 +30,7 @@ export class ApplicationFormController {
     schema:{
       type:'object',
       properties:{
-        file:{
+        files:{
           type:'string',
           format:'binary',
           description:'입학 신청서류'
@@ -46,7 +46,7 @@ export class ApplicationFormController {
     }
   })
   @Post()
-  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('files',10,FileDiskOptions))
   async createApplication(
     @Body() CreateApplicationFormDto:CreateApplicationFormDto,
     @UploadedFiles() files:Express.Multer.File[]
@@ -98,7 +98,7 @@ export class ApplicationFormController {
     schema:{
       type:'object',
       properties:{
-        file:{
+        files:{
           type:'string',
           format:'binary',
           description:'새로 추가하는 입학 신청서류, 서류가 없을 경우 필수 아님'
@@ -114,7 +114,7 @@ export class ApplicationFormController {
     example:{message:'입학 신청이 수정되었습니다.'}
   })
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('file',10,FileDiskOptions))
+  @UseInterceptors(FilesInterceptor('files',10,FileDiskOptions))
   async updateApplication(
     @Param('id') id:number,
     @UploadedFiles() files:Express.Multer.File[], // 새로 추가되는 파일만 받음

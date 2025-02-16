@@ -2,18 +2,10 @@ import {
   Controller,
   Post,
   Param,
-  Delete,
-  Query,
   Res,
   UseInterceptors,
   UploadedFile,
-  NotFoundException,
-  HttpException,
-  HttpStatus,
   Get,
-  Body,
-  Put,
-  Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AttachmentsService } from './attachments.service';
@@ -26,9 +18,6 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
-import { Cron } from '@nestjs/schedule';
-import { CreateApplicationFormDto } from 'src/application-form/dto/create-application-form.dto';
 
 @Controller('attachments')
 export class AttachmentsController {
@@ -71,7 +60,7 @@ export class AttachmentsController {
   })
   @ApiResponse({
     example: {
-      download: 'files',
+      download: 'file',
     },
   })
   @Get(':filename') //다운로드
@@ -80,11 +69,6 @@ export class AttachmentsController {
     @Param('filename') filename: string,
   ) {
     return res.download(`/files/${filename}`);
-  }
-
-  @Cron('0 0 4 * * 4') // 목요일 4시에 작동
-  async deleteRestedFiles() {
-    await this.attachmentsService.deleteNotUsedFiles();
   }
 
 }

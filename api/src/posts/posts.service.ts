@@ -5,12 +5,10 @@ import { DataSource } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { AttachmentsService } from 'src/attachments/attachments.service';
 import { Multer } from 'multer';
-import * as fs from 'fs';
 import { transactional } from 'src/common/utils/transaction-helper';
-import * as path from 'path';
-import * as mime from 'mime-types';
 import * as levenshtein from 'fast-levenshtein';
 import { findFiles } from 'src/common/fileArrayFind';
+import { PostImages } from 'src/attachments/entities/post-images.entity';
 
 @Injectable()
 export class PostsService {
@@ -26,7 +24,6 @@ export class PostsService {
       typeof find //find의 타입 확인해서 string(안내글)과 number(게시글) 분류
     ) {
       case 'string': //안내글 찾을 경우
-        // post=await this.datasource.manager.findOneBy(Post,{category:find,language})//최신글 하나 가져오는 코드 추가
         post = await this.datasource.manager
           .createQueryBuilder()
           .select('posts')
@@ -81,20 +78,21 @@ export class PostsService {
     author: string,
     files: Express.Multer.File[],
   ) {
+    const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+    const createFilenames: string[] = []; // 테이블에 저장할 이미지 파일의 이름을 저장
+    let match;
+    if ((match = regex.exec(createPostDto.content)) !== null) {
+      // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
+      createFilenames.push(
+        match[1].replace(`${process.env.BACKEND_URL}/`, ''),
+      ); // 백엔드 주소를 없애고 filename에 저장
+    }
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
         ...createPostDto,
         author,
       }); // post 테이블 작성
-      const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
-      const createFilenames: string[] = []; // 테이블에 저장할 이미지 파일의 이름을 저장
-      let match;
-      if ((match = regex.exec(createPostDto.content)) !== null) {
-        // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
-        createFilenames.push(
-          match[1].replace(`${process.env.BACKEND_URL}/`, ''),
-        ); // 백엔드 주소를 없애고 filename에 저장
-      }
+
       if (createFilenames) {
         //저장할 이미지 파일이 있는 경우
         const array = findFiles(createFilenames); // findFiles로 이미지의 데이터를 받아와서
@@ -115,55 +113,42 @@ export class PostsService {
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
   ) {
-    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
-    const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
-    const oldSrcList = []; // 기존에 게시글에 있던 이미지 경로들
-    let match;
-    while ((match = regex.exec(oldPost.content)) !== null) {
-      oldSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장
-    }
+    const oldPostImages=await this.datasource.manager.find(PostImages,{where:{postId:id},select:['filename']})
+    const oldImageList:string[] = []; // 기존에 게시글의 이미지들 
+    oldPostImages.forEach(image=>{oldImageList.push(image.filename)}) // 찾아온 파일 이름만 빼서 oldSrcList에 추가 
 
-    const newSrcList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
+    const regex:RegExp = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+    const newImageList:string[] = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
+    let match;
     while ((match = regex.exec(updatePostDto.content)) !== null) {
-      newSrcList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장 );
+      newImageList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); 
+      //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장
     }
-    // oldSrcList - newSrcList 기존에 있었는데 제거된 이미지
-    const deleteTarget: string[] = oldSrcList.filter(
-      (x) => !newSrcList.includes(x),
+    // oldImageList - newImageList 기존에 있었는데 제거된 이미지
+    const deleteTarget: string[] = oldImageList.filter(
+      (x) => !newImageList.includes(x),
     );
-    const createTarget: string[] = newSrcList.filter(
-      (x) => !oldSrcList.includes(x),
+    // newImageList - OldImageList 기존에 없는 새로 추가된 이미지
+    const createTarget: string[] = newImageList.filter(
+      (x) => !oldImageList.includes(x),
     );
     await transactional<void>(this.datasource, async (queryRunner) => {
-      // 기존 게시글의 이미지를 전부 추출
-
-      if (deleteTarget) {
-        let array = [];
-        for (let i of deleteTarget) {
-          array.push({
-            filename: path.basename(i),
-          });
-        }
-        await this.attachmentService.deleteOldImage(array, queryRunner);
+      if (deleteTarget) { // 삭제할 이미지
+        await this.attachmentService.deleteOldImage(deleteTarget,queryRunner)
       }
-      if (createTarget) {
-        let array = [];
-        for (let i of createTarget) {
-          array.push(path.basename(i));
-        }
-        const createArray = findFiles(array);
+      if (createTarget) { //생성할 이미지 
+        const createArray=findFiles(createTarget)
         await this.attachmentService.createImage(createArray, id, queryRunner);
       }
-      // 새로운 이미지 추가
 
-      if (updatePostDto.deleteFilePath) {
+      if (updatePostDto.deleteFilePath) {  //삭제할 파일
         const deletePath = JSON.parse(updatePostDto.deleteFilePath);
         await this.attachmentService.deleteFileAndAttachments(
           deletePath,
           queryRunner,
         );
       }
-      if (!(files.length == 0)) {
+      if (!(files.length == 0)) { //생성할 파일 
         await this.attachmentService.createAttachment(files, id, queryRunner);
       }
       const { deleteFilePath, ...newPost } = updatePostDto;
