@@ -20,6 +20,8 @@ export class ApplicationFormService {
     files: Express.Multer.File[],
     userId: number,
   ) {
+    const userFind=await this.dataSource.manager.findBy(ApplicationForm,{userId,course:createApplicationFormDto.course})
+    if(userFind){throw new BadRequestException('유저가 해당 과정으로 신청한 이력이 있습니다.')}
     await transactional(this.dataSource, async (queryRunner) => {
       const applicationId = (
         await queryRunner.manager.save(ApplicationForm, {
@@ -139,5 +141,15 @@ export class ApplicationFormService {
     await transactional(this.dataSource, async (queryRunner) => {
       await queryRunner.manager.delete(ApplicationForm, id);
     });
+  }
+
+  async findApplicationByUser(userId:number){
+    const queryRunner=await this.dataSource.createQueryBuilder()
+    .from(ApplicationForm,'form')
+    .where('form.userId= :userId',{userId})
+    .select(['form.id AS Id', 'form.course AS course', 'form.createdDate AS createdDate', 'form.isDone AS isDone'])
+    .getMany()
+    
+    return queryRunner
   }
 }

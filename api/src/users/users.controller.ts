@@ -64,4 +64,20 @@ export class UsersController {
       message: '이름을 성공적으로 변경했습니다.',
     });
   }
+  
+  @ApiOperation({summary:'유저가 관리자인지 확인'})
+  @ApiResponse({
+    example:{
+      message:'관리자 확인 결과입니다.',
+      result:true
+    }
+  })
+  @UseGuards(AuthGuard)
+  @Get()
+  async identifyUserAdmin(@Req() req){
+    return {
+      message:'관리자 확인 결과입니다.',
+      result:await this.usersService.identifyAdminUser(req.user)
+    }
+  }
 }
