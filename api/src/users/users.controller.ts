@@ -32,7 +32,8 @@ export class UsersController {
     console.log(req);
     const { password, googleId, emailVerifiedAt, signUpVerifyToken, ...user } =
       await this.usersService.findOneByEmail(req.user.email);
-    return user;
+    const response = { ...user, isLinked: googleId ? true : false };
+    return response;
   }
 
   @ApiOperation({

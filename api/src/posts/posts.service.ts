@@ -83,9 +83,7 @@ export class PostsService {
     let match;
     if ((match = regex.exec(createPostDto.content)) !== null) {
       // 정규식으로 작성할 글의 content에서 src속성의 이미지파일 주소를 다 찾아옴
-      createFilenames.push(
-        match[1].replace(`${process.env.BACKEND_URL}/`, ''),
-      ); // 백엔드 주소를 없애고 filename에 저장
+      createFilenames.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); // 백엔드 주소를 없애고 filename에 저장
     }
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
@@ -113,15 +111,20 @@ export class PostsService {
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
   ) {
-    const oldPostImages=await this.datasource.manager.find(PostImages,{where:{postId:id},select:['filename']})
-    const oldImageList:string[] = []; // 기존에 게시글의 이미지들 
-    oldPostImages.forEach(image=>{oldImageList.push(image.filename)}) // 찾아온 파일 이름만 빼서 oldSrcList에 추가 
+    const oldPostImages = await this.datasource.manager.find(PostImages, {
+      where: { postId: id },
+      select: ['filename'],
+    });
+    const oldImageList: string[] = []; // 기존에 게시글의 이미지들
+    oldPostImages.forEach((image) => {
+      oldImageList.push(image.filename);
+    }); // 찾아온 파일 이름만 빼서 oldSrcList에 추가
 
-    const regex:RegExp = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
-    const newImageList:string[] = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
+    const regex: RegExp = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+    const newImageList: string[] = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
     let match;
     while ((match = regex.exec(updatePostDto.content)) !== null) {
-      newImageList.push(match[1].replace(`${process.env.BACKEND_URL}/`, '')); 
+      newImageList.push(match[1].replace(`${process.env.BACKEND_URL}/`, ''));
       //src 속성에 있던 백엔드 주소를 삭제 해서 파일이름만 저장
     }
     // oldImageList - newImageList 기존에 있었는데 제거된 이미지
@@ -133,22 +136,26 @@ export class PostsService {
       (x) => !oldImageList.includes(x),
     );
     await transactional<void>(this.datasource, async (queryRunner) => {
-      if (deleteTarget) { // 삭제할 이미지
-        await this.attachmentService.deleteOldImage(deleteTarget,queryRunner)
+      if (deleteTarget) {
+        // 삭제할 이미지
+        await this.attachmentService.deleteOldImage(deleteTarget, queryRunner);
       }
-      if (createTarget) { //생성할 이미지 
-        const createArray=findFiles(createTarget)
+      if (createTarget) {
+        //생성할 이미지
+        const createArray = findFiles(createTarget);
         await this.attachmentService.createImage(createArray, id, queryRunner);
       }
 
-      if (updatePostDto.deleteFilePath) {  //삭제할 파일
+      if (updatePostDto.deleteFilePath) {
+        //삭제할 파일
         const deletePath = JSON.parse(updatePostDto.deleteFilePath);
         await this.attachmentService.deleteFileAndAttachments(
           deletePath,
           queryRunner,
         );
       }
-      if (!(files.length == 0)) { //생성할 파일 
+      if (!(files.length == 0)) {
+        //생성할 파일
         await this.attachmentService.createAttachment(files, id, queryRunner);
       }
       const { deleteFilePath, ...newPost } = updatePostDto;
@@ -236,5 +243,33 @@ export class PostsService {
     if (!a.include && b.include) {
       return 1;
     }
+  }
+
+  async slide(language: string) {
+    const posts = await this.datasource.manager.find(Post, {
+      where: { category: 'news', language: language },
+      take: 10,
+      order: { updatedDate: 'DESC' },
+    });
+    const regex: RegExp = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
+    const slideList = []; // 새롭게 수정된 게시글에 있는 이미지 경로들
+    for (let index = 0; index < posts.length; index++) {
+      const element = posts[index];
+
+      // 정규식 lastIndex 초기화
+      regex.lastIndex = 0;
+
+      const match = regex.exec(element.content);
+
+      if (match) {
+        console.log(match[1].replace(`${process.env.BACKEND_URL}/`, ''));
+        slideList.push({
+          title: element.title,
+          image: match[1].replace(`${process.env.BACKEND_URL}/`, ''),
+        });
+      }
+    }
+
+    return slideList;
   }
 }
