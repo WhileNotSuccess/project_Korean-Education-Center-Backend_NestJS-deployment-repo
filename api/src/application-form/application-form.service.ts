@@ -20,8 +20,6 @@ export class ApplicationFormService {
     files: Express.Multer.File[],
     userId: number,
   ) {
-    const userFind=await this.dataSource.manager.findBy(ApplicationForm,{userId,course:createApplicationFormDto.course})
-    if(userFind){throw new BadRequestException('유저가 해당 과정으로 신청한 이력이 있습니다.')}
     await transactional(this.dataSource, async (queryRunner) => {
       const applicationId = (
         await queryRunner.manager.save(ApplicationForm, {
@@ -144,12 +142,29 @@ export class ApplicationFormService {
   }
 
   async findApplicationByUser(userId:number){
-    const queryRunner=await this.dataSource.createQueryBuilder()
-    .from(ApplicationForm,'form')
-    .where('form.userId= :userId',{userId})
+    const queryRunner=await this.dataSource
+    .getRepository(ApplicationForm)
+    .createQueryBuilder('form')
+    .leftJoin(ApplicationAttachment,'attach','form.id=attach.applicationId')
     .select(['form.id AS Id', 'form.course AS course', 'form.createdDate AS createdDate', 'form.isDone AS isDone'])
-    .getMany()
-    
-    return queryRunner
+    .addSelect(`
+      COALESCE(
+        CONCAT('[', 
+          GROUP_CONCAT(
+            JSON_OBJECT(
+              'id', attach.id,
+              'filename', attach.filename,
+              'fileSize', attach.fileSize,
+              'filetype', attach.filetype
+            ) SEPARATOR ','
+          ), 
+        ']'), '[]'
+      ) AS attachments
+    `)
+    .groupBy('form.id')
+    .where('form.userId= :userId',{userId})
+    const rawData= await queryRunner.getRawMany()
+    const JsonData=rawData.map(item=>({...item,attachments:JSON.parse(item.attachments)}))
+    return JsonData
   }
 }

@@ -186,10 +186,9 @@ export class ApplicationFormController {
     ]
     }
   })
-  @UseGuards(AuthGuard)
   @Get('user')
-  async findUserApplication(@Req() req){
-    const user=req.user
+  async findUserApplication(){
+    const user={id:1} //guard 적용 후 삭제
     const Form=await this.applicationFormService.findApplicationByUser(user.id)
     return {
       message:'유저의 입학정보를 불러왔습니다.',
