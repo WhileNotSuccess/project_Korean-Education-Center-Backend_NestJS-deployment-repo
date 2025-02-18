@@ -309,6 +309,7 @@ export class PostsController {
       message: '정보를 성공적으로 가져왔습니다.',
       data: [
         {
+          id: 1,
           image: '212514684-hello.png',
           title: '제목입니다.',
         },

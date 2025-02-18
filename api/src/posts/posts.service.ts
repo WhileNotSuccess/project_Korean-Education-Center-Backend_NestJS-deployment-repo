@@ -266,6 +266,7 @@ export class PostsService {
         slideList.push({
           title: element.title,
           image: match[1].replace(`${process.env.BACKEND_URL}/`, ''),
+          id: element.id,
         });
       }
     }
