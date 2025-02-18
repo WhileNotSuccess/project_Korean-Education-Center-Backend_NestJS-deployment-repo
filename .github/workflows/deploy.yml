@@ -52,5 +52,6 @@ jobs:
             -e GOOGLE_CALLBACK_LINK_URL=${{ secrets.GOOGLE_CALLBACK_LINK_URL }} \
             -e BACKEND_URL=${{ secrets.BACKEND_URL }} \
             -e COOKIE_DOMAIN=${{ secrets.COOKIE_DOMAIN }} \
+            -e ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
             -v ~/files:/files \
             ${{ secrets.DOCKER_USERNAME }}/koreannestjs:latest
