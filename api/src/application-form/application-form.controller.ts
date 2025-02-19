@@ -10,6 +10,8 @@ import {
   Query,
   DefaultValuePipe,
   UploadedFiles,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApplicationFormService } from './application-form.service';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';
@@ -25,6 +27,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @ApiTags('ApplicationForm')
 @Controller('application-form')
@@ -167,5 +170,29 @@ export class ApplicationFormController {
   async deleteApplication(@Param('id') id: number) {
     await this.applicationFormService.remove(id);
     return { message: '입학신청이 취소되었습니다.' };
+  }
+
+  @ApiOperation({summary:'일반 유저가 확인할 자신의 입학 신청 글 '})
+  @ApiResponse({
+    example:{
+      message:'유저의 입학정보를 불러왔습니다.',
+      data:[
+        { 
+          id:1,
+          course:'korean',
+          createdDate:'2023-12-78',
+          isDone:false
+      }
+    ]
+    }
+  })
+  @Get('user')
+  async findUserApplication(){
+    const user={id:1} //guard 적용 후 삭제
+    const Form=await this.applicationFormService.findApplicationByUser(user.id)
+    return {
+      message:'유저의 입학정보를 불러왔습니다.',
+      data:Form
+    }
   }
 }

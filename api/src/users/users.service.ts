@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource } from 'typeorm';
@@ -50,5 +50,20 @@ export class UsersService {
     return transactional<void>(this.dataSource, async (queryRunner)=>{
       await queryRunner.manager.update(User, { id }, { googleId });
     })
+  }
+  /**
+   * 관리자 이메일을 환경변수에서 받아와 id와 이메일을 비교
+   * 관리자가 맞으면 true 틀리면 false
+   * @param user req.user를 넣을 것 
+   * @returns 
+   */
+  async identifyAdminUser(user){
+    const adminUserEmail=process.env.ADMIN_EMAIL
+    const adminUser= await this.dataSource.manager.findOneBy(User,{email:adminUserEmail})
+    if(!adminUser){throw new NotFoundException('관리자가 등록되어있는지 확인해 주세요')}
+    if(user.email==adminUser.email){
+      return true
+    }
+    return false
   }
 }
