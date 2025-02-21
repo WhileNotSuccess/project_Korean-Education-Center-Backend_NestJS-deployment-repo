@@ -71,6 +71,7 @@ export class ApplicationFormService {
       `,
       )
       .addSelect(['user.name AS userName'])
+      .addSelect(['user.email AS userEmail'])
       .groupBy('form.id')
       .take(take)
       .skip((page - 1) * take)
@@ -141,13 +142,19 @@ export class ApplicationFormService {
     });
   }
 
-  async findApplicationByUser(userId:number){
-    const queryRunner=await this.dataSource
-    .getRepository(ApplicationForm)
-    .createQueryBuilder('form')
-    .leftJoin(ApplicationAttachment,'attach','form.id=attach.applicationId')
-    .select(['form.id AS Id', 'form.course AS course', 'form.createdDate AS createdDate', 'form.isDone AS isDone'])
-    .addSelect(`
+  async findApplicationByUser(userId: number) {
+    const queryRunner = await this.dataSource
+      .getRepository(ApplicationForm)
+      .createQueryBuilder('form')
+      .leftJoin(ApplicationAttachment, 'attach', 'form.id=attach.applicationId')
+      .select([
+        'form.id AS Id',
+        'form.course AS course',
+        'form.createdDate AS createdDate',
+        'form.isDone AS isDone',
+      ])
+      .addSelect(
+        `
       COALESCE(
         CONCAT('[', 
           GROUP_CONCAT(
@@ -160,11 +167,15 @@ export class ApplicationFormService {
           ), 
         ']'), '[]'
       ) AS attachments
-    `)
-    .groupBy('form.id')
-    .where('form.userId= :userId',{userId})
-    const rawData= await queryRunner.getRawMany()
-    const JsonData=rawData.map(item=>({...item,attachments:JSON.parse(item.attachments)}))
-    return JsonData
+    `,
+      )
+      .groupBy('form.id')
+      .where('form.userId= :userId', { userId });
+    const rawData = await queryRunner.getRawMany();
+    const JsonData = rawData.map((item) => ({
+      ...item,
+      attachments: JSON.parse(item.attachments),
+    }));
+    return JsonData;
   }
 }

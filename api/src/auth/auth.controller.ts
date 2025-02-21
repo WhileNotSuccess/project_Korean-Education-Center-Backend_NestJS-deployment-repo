@@ -119,6 +119,7 @@ export class AuthController {
   ) {
     const user =
       await this.usersService.updateUsersEmailVerifiedAt(signupVerifyToken);
+
     const token = await this.authService.issuesAJwt(user);
     res.cookie('access_token', token.access_token, {
       maxAge: 60 * 60 * 1000,
