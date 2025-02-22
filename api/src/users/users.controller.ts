@@ -29,7 +29,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Get('info')
   async hello(@Req() req) {
-    console.log(req);
     const { password, googleId, emailVerifiedAt, signUpVerifyToken, ...user } =
       await this.usersService.findOneByEmail(req.user.email);
     const response = { ...user, isLinked: googleId ? true : false };
@@ -65,20 +64,20 @@ export class UsersController {
       message: '이름을 성공적으로 변경했습니다.',
     });
   }
-  
-  @ApiOperation({summary:'유저가 관리자인지 확인'})
+
+  @ApiOperation({ summary: '유저가 관리자인지 확인' })
   @ApiResponse({
-    example:{
-      message:'관리자 확인 결과입니다.',
-      result:true
-    }
+    example: {
+      message: '관리자 확인 결과입니다.',
+      result: true,
+    },
   })
   @UseGuards(AuthGuard)
   @Get()
-  async identifyUserAdmin(@Req() req){
+  async identifyUserAdmin(@Req() req) {
     return {
-      message:'관리자 확인 결과입니다.',
-      result:await this.usersService.identifyAdminUser(req.user)
-    }
+      message: '관리자 확인 결과입니다.',
+      result: await this.usersService.identifyAdminUser(req.user),
+    };
   }
 }
