@@ -42,29 +42,32 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly attachmentService: AttachmentsService,
   ) {}
-  @ApiOperation({ summary: '검색하기' })
+  @ApiOperation({
+    summary: '검색하기, 제목/내용/작성자 중 하나를 검색할 수 있다.',
+  })
   @ApiQuery({
     name: 'title',
     example: '공지사항',
-    description: '제목',
+    description: '제목 검색을 할 경우 입력',
     required: false,
   })
   @ApiQuery({
     name: 'content',
     example: '내용',
-    description: '게시글 내부 내용',
+    description: '게시글 내부 내용을 검색할 경우 입력',
     required: false,
   })
   @ApiQuery({
     name: 'category',
     example: 'notice',
-    description: '카테고리',
+    description:
+      '카테고리, 필수임, 모든 카테고리에서 검색하는 기능은 지원하지 않음음',
     required: false,
   })
   @ApiQuery({
     name: 'author',
     example: 'admin',
-    description: '작성자',
+    description: '작성자를 검색하는 경우 입력',
     required: false,
   })
   @ApiQuery({
@@ -92,7 +95,7 @@ export class PostsController {
     const selectedFilters = Object.values(filter).filter((value) => value);
     if (selectedFilters.length !== 1) {
       throw new BadRequestException(
-        'category, title, author, content 중 하나만 선택해야 합니다.',
+        'title, author, content 중 하나만 선택해야 합니다.',
       );
     }
     return await this.postsService.search(
