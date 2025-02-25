@@ -27,12 +27,7 @@ export class ApplicationAttachmentsService {
   }
 
   async findByApplication(applicationId: number, user) {
-    const auth = await checkOwnership(
-      user,
-      ApplicationForm,
-      applicationId,
-      this.datasource,
-    );
+    await checkOwnership(user, ApplicationForm, applicationId, this.datasource);
     return await this.datasource.manager.findBy(ApplicationAttachment, {
       applicationId,
     });
@@ -44,7 +39,7 @@ export class ApplicationAttachmentsService {
       { id },
     );
 
-    const auth = await checkOwnership(
+    await checkOwnership(
       user,
       ApplicationForm,
       target.applicationId,
