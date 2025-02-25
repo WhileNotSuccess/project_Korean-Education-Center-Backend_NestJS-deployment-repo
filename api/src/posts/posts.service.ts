@@ -49,6 +49,20 @@ export class PostsService {
     }
   }
 
+  async getOneForMain(find: string, language: string) {
+    const post = await this.datasource.manager
+      .createQueryBuilder()
+      .select('posts')
+      .from(Post, 'posts') //Post테이블에서 정보 다 받아오고
+      .where('category LIKE :category', { category: find })
+      .andWhere('language LIKE :language', { language }) // 그때 받는 조건 2개
+      .orderBy('updatedDate', 'DESC')
+      .getOne(); // 최신순 정렬로 하나만 받아옴
+    const attachment = await this.attachmentService.getByPostId(post.id);
+    const image = await this.attachmentService.getImageByPostId(post.id);
+
+    return { ...post, filename: attachment[0].filename, image };
+  }
   async getPagination(
     category: string,
     page: number,

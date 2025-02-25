@@ -12,7 +12,13 @@ import { PostImages } from './entities/post-images.entity';
 @Injectable()
 export class AttachmentsService {
   constructor(private readonly dataSource: DataSource) {}
+  async getImageByPostId(id: number) {
+    const image = await this.dataSource.manager.findOneBy(PostImages, {
+      postId: id,
+    });
 
+    return image.filename;
+  }
   async createImage(
     // content 내부의 image의 데이터를 postImages 테이블에 저장하는 함수
     files: Express.Multer.File[],
@@ -42,11 +48,11 @@ export class AttachmentsService {
       });
     }
   }
-  
+
   async deleteOldImage(filesnames: string[], queryRunner: QueryRunner) {
     for (let filename of filesnames) {
       await queryRunner.manager.delete(PostImages, {
-        filename
+        filename,
       });
       const filePath = `/files/${filename}`;
       if (!fs.existsSync(filePath)) {
@@ -78,9 +84,8 @@ export class AttachmentsService {
       if (!fs.existsSync(filePath)) {
         throw new NotFoundException('파일을 찾을 수 없습니다.');
       }
-      fs.unlink(filePath,e=>console.log(e))
+      fs.unlink(filePath, (e) => console.log(e));
     }
     return { message: '파일이 성공적으로 삭제되었습니다.' };
   }
-
 }

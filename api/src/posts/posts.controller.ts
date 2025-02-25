@@ -45,6 +45,39 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly attachmentService: AttachmentsService,
   ) {}
+
+  @ApiOperation({
+    summary:
+      '메인에서 사용, 모집요강 파일 이름과 사진, 입학신청서 파일 이름과 사진을 받아 올 수 있다.',
+  })
+  @ApiResponse({
+    example: {
+      message: '모집요강과 입학신청서를 불러왔습니다.',
+      guidelinesForApplicantsFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
+      guidelinesForApplicantsImageName: '20250224-161403.jpg',
+      applicationFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
+      applicationImageName: '20250224-161403_tinymce_5.10.5_dev.jpg',
+    },
+  })
+  @Get('main/applicants')
+  async mainApplicants() {
+    const guidelinesForApplicants = await this.postsService.getOneForMain(
+      'guidelinesForApplicants',
+      'korean',
+    );
+    const applicants = await this.postsService.getOneForMain(
+      'applicants',
+      'korean',
+    );
+
+    return {
+      guidelinesForApplicantsFileName: guidelinesForApplicants.filename,
+      guidelinesForApplicantsImageName: guidelinesForApplicants.image,
+      applicationFileName: applicants.filename,
+      applicationImageName: applicants.image,
+    };
+  }
+
   @ApiOperation({
     summary: '검색하기, 제목/내용/작성자 중 하나를 검색할 수 있다.',
   })
