@@ -27,7 +27,7 @@ import { ApplicationAttachment } from './application-attachments/entities/applic
 import { PostImages } from './attachments/entities/post-images.entity';
 import { BatchModule } from './batch/batch.module';
 import { CourseModule } from './course/course.module';
-
+import { Course } from './course/entities/course.entity';
 
 @Module({
   imports: [
@@ -48,6 +48,7 @@ import { CourseModule } from './course/course.module';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         entities: [
+          Course,
           Post,
           ApplicationForm,
           Attachment,
