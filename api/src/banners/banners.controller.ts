@@ -98,8 +98,14 @@ export class BannersController {
     },
   })
   @Get()
-  async findAll(@Query('ignore', new DefaultValuePipe(false)) ignore: boolean) {
-    return await this.bannersService.findAll(ignore);
+  async findAll(
+    @Query('ignore', new DefaultValuePipe(false)) ignore: boolean,
+    @Req() req,
+  ) {
+    return await this.bannersService.findAll(
+      ignore,
+      req.cookies['language'] || 'korean',
+    );
   }
 
   @ApiOperation({ summary: '배너 수정하기' })

@@ -60,14 +60,14 @@ export class PostsController {
     },
   })
   @Get('main/applicants')
-  async mainApplicants() {
+  async mainApplicants(@Req() req) {
     const guidelinesForApplicants = await this.postsService.getOneForMain(
       'guidelinesForApplicants',
-      'korean',
+      req.cookies['language'] || 'korean',
     );
     const applicants = await this.postsService.getOneForMain(
       'applicants',
-      'korean',
+      req.cookies['language'] || 'korean',
     );
 
     return {
