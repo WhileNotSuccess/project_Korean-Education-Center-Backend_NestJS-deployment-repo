@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseBoolPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ConsultationRequestService } from './consultation-request.service';
 import { CreateConsultationRequestDto } from './dto/create-consultation-request.dto';
@@ -19,6 +20,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Controller('consult')
 export class ConsultationRequestController {
@@ -47,6 +49,7 @@ export class ConsultationRequestController {
       ],
     },
   })
+  @UseGuards(AdminGuard)
   @Get()
   async findAll(
     @Query('isDone', new ParseBoolPipe({ optional: true })) isDone?: boolean,
@@ -81,6 +84,7 @@ export class ConsultationRequestController {
     },
   })
   @ApiParam({ name: 'id', description: '상담 신청의 id', example: 1 })
+  @UseGuards(AdminGuard)
   @Patch(':id')
   async updateConsult(
     @Body() dto: UpdateConsultationRequestDto,
@@ -99,6 +103,7 @@ export class ConsultationRequestController {
       message: '상담 신청을 성공적으로 삭제하였습니다.',
     },
   })
+  @UseGuards(AdminGuard)
   @Delete(':id')
   async deleteConsult(@Param('id') id: number) {
     await this.consultationRequestService.remove(id);

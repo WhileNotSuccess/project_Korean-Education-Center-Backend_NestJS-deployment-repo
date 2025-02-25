@@ -3,15 +3,18 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Attachment } from '../../attachments/entities/attachment.entity';
 import { Language } from '../../common/language.enum';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'posts' })
-@Index("pagination_Index",["category","language"])
+@Index('pagination_Index', ['category', 'language'])
 export class Post {
   @PrimaryGeneratedColumn()
   id: number;
@@ -19,8 +22,8 @@ export class Post {
   title: string;
   @Column({ type: 'longtext' })
   content: string;
-  @Column({ length: 100 })
-  author: string;
+  @Column()
+  userId: number;
   @Column({ length: 25 })
   category: string;
   @CreateDateColumn()
@@ -34,5 +37,8 @@ export class Post {
   @OneToMany(() => Attachment, (attach) => attach.postId, {
     onDelete: 'CASCADE',
   })
-  attach: Attachment[];
+  attaches: Attachment[];
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 }

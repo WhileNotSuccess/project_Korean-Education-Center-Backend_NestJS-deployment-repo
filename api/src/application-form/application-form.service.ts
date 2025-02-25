@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';
 import { UpdateApplicationFormDto } from './dto/update-application-form.dto';
 import { transactional } from 'src/common/utils/transaction-helper';
@@ -7,6 +11,7 @@ import { ApplicationForm } from './entities/application-form.entity';
 import { ApplicationAttachmentsService } from 'src/application-attachments/application-attachments.service';
 import { ApplicationAttachment } from 'src/application-attachments/entities/application-attachment.entity';
 import { User } from 'src/users/entities/user.entity';
+import checkOwnership from 'src/common/utils/checkOwnership';
 
 @Injectable()
 export class ApplicationFormService {
@@ -73,15 +78,13 @@ export class ApplicationFormService {
       .addSelect(['user.name AS userName'])
       .addSelect(['user.email AS userEmail'])
       .groupBy('form.id')
-      .take(take)
-      .skip((page - 1) * take)
       .orderBy('form.createdDate', 'ASC');
 
     if (!isDone) {
       queryRunner.where('form.isDone = :isDone', { isDone: false });
     }
-
-    const rawData = await queryRunner.getRawMany(); // getRawAndEntities() 대신 사용
+    queryRunner.skip((page - 1) * take).take(take);
+    const rawData = await queryRunner.getRawMany();
 
     // MySQL의 `GROUP_CONCAT()`은 문자열로 반환되므로, JSON으로 변환
     const formattedData = rawData.map((row) => ({
@@ -112,7 +115,9 @@ export class ApplicationFormService {
     id: number,
     updateApplicationFormDto: UpdateApplicationFormDto,
     files: Express.Multer.File[],
+    user,
   ) {
+    await checkOwnership(user, ApplicationForm, id, this.dataSource);
     await transactional(this.dataSource, async (queryRunner) => {
       if (updateApplicationFormDto.deleteFilePath) {
         const deleteFiles = JSON.parse(updateApplicationFormDto.deleteFilePath);
@@ -136,7 +141,8 @@ export class ApplicationFormService {
     });
   }
 
-  async remove(id: number) {
+  async remove(id: number, user) {
+    await checkOwnership(user, ApplicationForm, id, this.dataSource);
     await transactional(this.dataSource, async (queryRunner) => {
       await queryRunner.manager.delete(ApplicationForm, id);
     });

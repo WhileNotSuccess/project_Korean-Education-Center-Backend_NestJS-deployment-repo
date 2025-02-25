@@ -9,22 +9,29 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleLinkStrategy } from './strategies/google-link.strategy';
+import { AdminStrategy } from './strategies/admin.strategy';
 
 @Module({
-  imports:[
+  imports: [
     PassportModule,
     EmailModule,
     UsersModule,
     JwtModule.registerAsync({
-      inject:[ConfigService],
-      useFactory:(config:ConfigService)=>({
-        global:true,
-        secret:config.get('JWT_SECRET'),
-        signOptions:{expiresIn:'1h'}
-      })
-    })
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        global: true,
+        secret: config.get('JWT_SECRET'),
+        signOptions: { expiresIn: '1h' },
+      }),
+    }),
   ],
   controllers: [AuthController],
-  providers: [AuthService,JwtStrategy,GoogleStrategy,GoogleLinkStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleLinkStrategy,
+    AdminStrategy,
+  ],
 })
 export class AuthModule {}

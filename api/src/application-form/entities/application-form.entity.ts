@@ -1,18 +1,34 @@
-import { ApplicationAttachment } from "../..//application-attachments/entities/application-attachment.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { User } from '../../users/entities/user.entity';
+import { ApplicationAttachment } from '../../application-attachments/entities/application-attachment.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-@Entity({name:'ApplicationForm'})
+@Entity({ name: 'ApplicationForm' })
 export class ApplicationForm {
-    @PrimaryGeneratedColumn()
-    id:number
-    @Column()
-    userId:number
-    @Column({length:20})
-    course:string
-    @CreateDateColumn()
-    createdDate:Date
-    @Column({default:false})
-    isDone:boolean
-    @OneToMany(()=>ApplicationAttachment,(attachment)=>attachment.applicationId,{onDelete:'CASCADE'})
-    applicationAttachment:ApplicationAttachment[]
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column()
+  userId: number;
+  @Column({ length: 20 })
+  course: string;
+  @CreateDateColumn()
+  createdDate: Date;
+  @Column({ default: false })
+  isDone: boolean;
+  @OneToMany(
+    () => ApplicationAttachment,
+    (attachment) => attachment.applicationId,
+    { onDelete: 'CASCADE' },
+  )
+  applicationAttachment: ApplicationAttachment[];
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 }

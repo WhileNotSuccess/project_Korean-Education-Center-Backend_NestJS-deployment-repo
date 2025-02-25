@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { DataSource } from 'typeorm';
@@ -9,6 +13,7 @@ import { transactional } from 'src/common/utils/transaction-helper';
 import * as levenshtein from 'fast-levenshtein';
 import { findFiles } from 'src/common/fileArrayFind';
 import { PostImages } from 'src/attachments/entities/post-images.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class PostsService {
@@ -32,12 +37,16 @@ export class PostsService {
           .andWhere('language LIKE :language', { language }) // 그때 받는 조건 2개
           .orderBy('updatedDate', 'DESC')
           .getOne(); // 최신순 정렬로 하나만 받아옴
-        break;
-      case 'number': //게시글 찾을 경우
-        post = await this.datasource.manager.findOneBy(Post, { id: find });
-    }
+        return post;
 
-    return post;
+      case 'number': //게시글 찾을 경우
+        post = await this.datasource.manager.findOne(Post, {
+          where: { id: find },
+          relations: ['user'],
+        });
+        const res = { ...post, user: '', author: post.user.name };
+        return res;
+    }
   }
 
   async getPagination(
@@ -49,10 +58,12 @@ export class PostsService {
     // 카테고리, 현재 페이지, 가져올 글 개수
     const [value, total] = await this.datasource.manager.findAndCount(Post, {
       where: { category, language },
+      relations: ['user'],
       skip: (page - 1) * take,
       take,
       order: { updatedDate: 'DESC' },
     });
+
     if (total == 0) {
       throw new BadRequestException(
         `${category}카테고리 글이 존재하지 않습니다.`,
@@ -65,7 +76,9 @@ export class PostsService {
 
     return {
       message: `${category}의 ${page}번째 페이지를 불러왔습니다.`,
-      data: value,
+      data: value.map((item) => {
+        return { ...item, user: {}, author: item.user.name };
+      }),
       currentPage: page,
       prevPage,
       nextPage,
@@ -75,7 +88,7 @@ export class PostsService {
 
   async create(
     createPostDto: CreatePostDto,
-    author: string,
+    id: number,
     files: Express.Multer.File[],
   ) {
     const regex = /<img[^>]+src=["']?([^"'\s>]+)["'\s>]/g;
@@ -88,7 +101,7 @@ export class PostsService {
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
         ...createPostDto,
-        author,
+        userId: id,
       }); // post 테이블 작성
 
       if (createFilenames) {
@@ -110,11 +123,18 @@ export class PostsService {
     id: number,
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
+    userId: number,
+    email: string,
   ) {
+    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
+    if (email !== process.env.ADMIN_EMAIL && oldPost.userId !== userId) {
+      throw new UnauthorizedException('권한이 없습니다.');
+    }
     const oldPostImages = await this.datasource.manager.find(PostImages, {
       where: { postId: id },
       select: ['filename'],
     });
+
     const oldImageList: string[] = []; // 기존에 게시글의 이미지들
     oldPostImages.forEach((image) => {
       oldImageList.push(image.filename);
@@ -163,7 +183,11 @@ export class PostsService {
     });
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number, email: string) {
+    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
+    if (email !== process.env.ADMIN_EMAIL && oldPost.userId !== userId) {
+      throw new UnauthorizedException('권한이 없습니다.');
+    }
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
     });
@@ -178,7 +202,9 @@ export class PostsService {
     content?: string,
   ) {
     const queryBuilder = this.datasource.manager.createQueryBuilder();
-    queryBuilder.from(Post, 'post');
+    queryBuilder
+      .from(Post, 'post')
+      .leftJoin(User, 'user', 'post.userId = user.id');
     queryBuilder.where('category = :category', { category });
     queryBuilder.select('*');
     let results = await queryBuilder.getRawMany();
@@ -186,32 +212,53 @@ export class PostsService {
     if (title) {
       results = results
         .map((post) => ({
-          post,
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          language: post.language,
+          createdDate: post.createdDate,
+          updatedDate: post.updatedDate,
+          expiredDate: post.expiredDate,
+          author: post.name,
           include: (post.title as string).indexOf(title) !== -1,
           distance: levenshtein.get(post.title, title),
         }))
-        .sort(this.sort)
-        .map((entry) => entry.post);
+        .sort(this.sort);
     }
     if (author) {
       results = results
         .map((post) => ({
-          post,
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          language: post.language,
+          createdDate: post.createdDate,
+          updatedDate: post.updatedDate,
+          expiredDate: post.expiredDate,
+          author: post.name,
           include: (post.author as string).indexOf(author) !== -1,
           distance: levenshtein.get(post.author, author),
         }))
-        .sort(this.sort)
-        .map((entry) => entry.post);
+        .sort(this.sort);
     }
     if (content) {
       results = results
         .map((post) => ({
-          post,
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          language: post.language,
+          createdDate: post.createdDate,
+          updatedDate: post.updatedDate,
+          expiredDate: post.expiredDate,
+          author: post.name,
           include: (post.content as string).indexOf(content) !== -1,
           distance: levenshtein.get(post.content, content),
         }))
-        .sort(this.sort)
-        .map((entry) => entry.post);
+        .sort(this.sort);
     }
     // 페이지가 1인 경우 limit * 0 ~ limit * 1 - 1 까지
 
@@ -229,11 +276,9 @@ export class PostsService {
     };
   }
   private sort(a, b) {
-    console.log(a);
-    console.log(b);
     if ((a.include && b.include) || (!a.include && !b.include)) {
       if (a.distance === b.distance) {
-        return a.post.id - b.post.id;
+        return a.id - b.id;
       }
       return a.distance - b.distance;
     }

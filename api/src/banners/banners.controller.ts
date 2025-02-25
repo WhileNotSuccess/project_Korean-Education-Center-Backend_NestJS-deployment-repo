@@ -10,6 +10,9 @@ import {
   UploadedFile,
   Query,
   DefaultValuePipe,
+  UseGuards,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -25,6 +28,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @ApiTags('Banner')
 @Controller('banners')
@@ -42,9 +46,12 @@ export class BannersController {
           format: 'binary',
           description: '배너 이미지, 필수',
         },
-        url: { type: 'string', description:'배너 이미지를 클릭시 이동할 url' },
-        expiredDate: { type: 'Date',description:'배너 이미지의 만료일자' },
-        language: { type: 'string', description:'배너 이미지를 띄울 사이트 언어' },
+        url: { type: 'string', description: '배너 이미지를 클릭시 이동할 url' },
+        expiredDate: { type: 'Date', description: '배너 이미지의 만료일자' },
+        language: {
+          type: 'string',
+          description: '배너 이미지를 띄울 사이트 언어',
+        },
       },
     },
   })
@@ -53,12 +60,17 @@ export class BannersController {
       message: '배너가 작성되었습니다.',
     },
   })
+  @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async create(
     @Body() createBannerDto: CreateBannerDto,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req,
   ) {
+    if (req.user.email !== process.env.ADMIN_EMAIL) {
+      throw new UnauthorizedException('권한이 없습니다.');
+    }
     await this.bannersService.create(createBannerDto, file);
     return { message: '배너가 작성되었습니다.' };
   }
@@ -74,13 +86,15 @@ export class BannersController {
   @ApiResponse({
     example: {
       message: '배너를 불러왔습니다.',
-      data: [{
-        id:1,
-        image:'20250204-092604_9e7a66f0-e28e-11ef-81ea-2124a8f9cd05.png',
-        language:'korean',
-        expiredDate:'2025-03-01',
-        url:'https://www.naver.com'
-      }],
+      data: [
+        {
+          id: 1,
+          image: '20250204-092604_9e7a66f0-e28e-11ef-81ea-2124a8f9cd05.png',
+          language: 'korean',
+          expiredDate: '2025-03-01',
+          url: 'https://www.naver.com',
+        },
+      ],
     },
   })
   @Get()
@@ -113,13 +127,18 @@ export class BannersController {
     },
   })
   @ApiConsumes('multipart/form-data')
+  @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async update(
     @Param('id') id: number,
     @Body() updateBannerDto: UpdateBannerDto,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req,
   ) {
+    if (req.user.email !== process.env.ADMIN_EMAIL) {
+      throw new UnauthorizedException('권한이 없습니다.');
+    }
     await this.bannersService.update(id, updateBannerDto, file);
     return { message: '배너가 수정되었습니다.' };
   }
@@ -134,8 +153,12 @@ export class BannersController {
       message: '배너가 삭제되었습니다.',
     },
   })
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id') id: number, @Req() req) {
+    if (req.user.email !== process.env.ADMIN_EMAIL) {
+      throw new UnauthorizedException('권한이 없습니다.');
+    }
     await this.bannersService.remove(id);
     return {
       message: '배너가 삭제되었습니다.',

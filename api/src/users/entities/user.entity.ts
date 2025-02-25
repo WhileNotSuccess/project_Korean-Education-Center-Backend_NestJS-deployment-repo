@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ApplicationForm } from '../../application-form/entities/application-form.entity';
+import { Post } from '../../posts/entities/post.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -22,4 +24,18 @@ export class User {
 
   @Column({ length: 36 })
   signUpVerifyToken: string;
+
+  @OneToMany(() => Post, (post) => post.userId, {
+    onDelete: 'CASCADE',
+  })
+  posts: Post[];
+
+  @OneToMany(
+    () => ApplicationForm,
+    (applicationForm) => applicationForm.userId,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  applications: ApplicationForm[];
 }
