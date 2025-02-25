@@ -26,6 +26,7 @@ import { ApplicationAttachmentsModule } from './application-attachments/applicat
 import { ApplicationAttachment } from './application-attachments/entities/application-attachment.entity';
 import { PostImages } from './attachments/entities/post-images.entity';
 import { BatchModule } from './batch/batch.module';
+import { CourseModule } from './course/course.module';
 
 
 @Module({
@@ -71,6 +72,7 @@ import { BatchModule } from './batch/batch.module';
     AuthModule,
     EmailModule,
     BatchModule,
+    CourseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

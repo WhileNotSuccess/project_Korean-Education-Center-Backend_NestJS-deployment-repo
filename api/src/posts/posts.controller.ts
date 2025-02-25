@@ -15,6 +15,8 @@ import {
   UploadedFile,
   DefaultValuePipe,
   NotFoundException,
+  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -34,6 +36,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @ApiTags('Post')
 @Controller('posts')
@@ -42,6 +45,39 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly attachmentService: AttachmentsService,
   ) {}
+
+  @ApiOperation({
+    summary:
+      '메인에서 사용, 모집요강 파일 이름과 사진, 입학신청서 파일 이름과 사진을 받아 올 수 있다.',
+  })
+  @ApiResponse({
+    example: {
+      message: '모집요강과 입학신청서를 불러왔습니다.',
+      guidelinesForApplicantsFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
+      guidelinesForApplicantsImageName: '20250224-161403.jpg',
+      applicationFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
+      applicationImageName: '20250224-161403_tinymce_5.10.5_dev.jpg',
+    },
+  })
+  @Get('main/applicants')
+  async mainApplicants() {
+    const guidelinesForApplicants = await this.postsService.getOneForMain(
+      'guidelinesForApplicants',
+      'korean',
+    );
+    const applicants = await this.postsService.getOneForMain(
+      'applicants',
+      'korean',
+    );
+
+    return {
+      guidelinesForApplicantsFileName: guidelinesForApplicants.filename,
+      guidelinesForApplicantsImageName: guidelinesForApplicants.image,
+      applicationFileName: applicants.filename,
+      applicationImageName: applicants.image,
+    };
+  }
+
   @ApiOperation({
     summary: '검색하기, 제목/내용/작성자 중 하나를 검색할 수 있다.',
   })
@@ -248,14 +284,24 @@ export class PostsController {
   @ApiResponse({
     example: { message: '글이 작성되었습니다.' },
   })
-  @Post() //완료
+  @UseGuards(AuthGuard)
+  @Post()
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async create(
     @Body() createPostDto: CreatePostDto,
     @UploadedFiles() files: Express.Multer.File[],
+    @Req() req,
   ) {
-    const author = 'admin'; //guard 생성시 삭제
-    await this.postsService.create(createPostDto, author, files);
+    if (
+      !(
+        createPostDto.category == 'review' || createPostDto.category == 'faq'
+      ) &&
+      req.user.email !== process.env.ADMIN_EMAIL
+    ) {
+      throw new UnauthorizedException('관리자만 작성가능합니다');
+    }
+
+    await this.postsService.create(createPostDto, req.user.id, files);
     return { message: '글이 작성되었습니다.' };
   }
 
@@ -286,23 +332,32 @@ export class PostsController {
   @ApiResponse({
     example: { message: '글이 수정되었습니다.' },
   })
+  @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async update(
     @Param('id') id: number,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFiles() files: Express.Multer.File[],
+    @Req() req,
   ) {
-    await this.postsService.update(id, updatePostDto, files);
+    await this.postsService.update(
+      id,
+      updatePostDto,
+      files,
+      req.user.id,
+      req.user.email,
+    );
     return { message: '글이 수정되었습니다.' };
   }
 
   @ApiOperation({ summary: 'post 삭제하기' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ example: { message: '글이 삭제되었습니다.' } })
+  @UseGuards(AuthGuard)
   @Delete(':id') // 완료
-  async remove(@Param('id') id: number) {
-    await this.postsService.remove(id);
+  async remove(@Param('id') id: number, @Req() req) {
+    await this.postsService.remove(id, req.user.id, req.user.email);
     return { message: '글이 삭제되었습니다.' };
   }
 

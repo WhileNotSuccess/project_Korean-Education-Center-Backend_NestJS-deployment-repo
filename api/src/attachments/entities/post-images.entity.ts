@@ -20,5 +20,5 @@ export class PostImages {
   fileSize: number;
   @ManyToOne(() => Post, (post) => post.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
-  posts: Post;
+  post: Post;
 }

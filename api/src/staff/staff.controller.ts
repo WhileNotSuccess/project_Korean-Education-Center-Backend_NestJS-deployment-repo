@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Controller('staff')
 export class StaffController {
@@ -59,6 +61,7 @@ export class StaffController {
   @ApiBody({
     type: CreateStaffDto,
   })
+  @UseGuards(AdminGuard)
   @Post()
   async createStaff(@Body() dto: CreateStaffDto) {
     await this.staffService.create(dto);
@@ -81,6 +84,7 @@ export class StaffController {
     type: 'number',
     example: 1,
   })
+  @UseGuards(AdminGuard)
   @Patch(':id')
   async updateStaff(@Param('id') id: number, @Body() dto: UpdateStaffDto) {
     await this.staffService.update(id, dto);
@@ -100,6 +104,7 @@ export class StaffController {
     type: 'number',
     example: 1,
   })
+  @UseGuards(AdminGuard)
   @Delete(':id')
   async deleteStaff(@Param('id') id: number) {
     await this.staffService.remove(id);

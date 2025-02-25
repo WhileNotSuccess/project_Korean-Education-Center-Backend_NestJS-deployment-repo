@@ -12,6 +12,8 @@ import {
   UploadedFiles,
   UseGuards,
   Req,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApplicationFormService } from './application-form.service';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';
@@ -28,6 +30,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { FilesRequiredPipe } from 'src/common/fileRequired.pipe';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('ApplicationForm')
 @Controller('application-form')
@@ -56,17 +60,18 @@ export class ApplicationFormController {
       message: '입학신청이 접수되었습니다.',
     },
   })
+  @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async createApplication(
     @Body() CreateApplicationFormDto: CreateApplicationFormDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(FilesRequiredPipe) files: Express.Multer.File[],
+    @Req() req,
   ) {
-    const userId = 1; // guard 적용 후 삭제
     await this.applicationFormService.create(
       CreateApplicationFormDto,
       files,
-      userId,
+      req.user.id,
     );
     return { message: '입학신청이 접수되었습니다.' };
   }
@@ -76,7 +81,7 @@ export class ApplicationFormController {
     name: 'ignore',
     example: false,
     description:
-      '이미 처리된(isDone이 true) 신청은 제외하고 불러올지, true면 전부 불러옴, defalut:false',
+      '이미 처리된(isDone이 true) 신청은 제외하고 불러올지, true면 전부 불러옴, default:false',
     required: false,
   })
   @ApiQuery({ name: 'limit', example: 10, default: 10, required: false })
@@ -110,11 +115,13 @@ export class ApplicationFormController {
       totalPage: 1,
     },
   })
+  @UseGuards(AdminGuard)
   @Get()
   async getPagination(
     @Query('limit', new DefaultValuePipe(10)) limit: number,
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('ignore', new DefaultValuePipe(false)) ignore: boolean,
+    @Req() req,
   ) {
     return await this.applicationFormService.findPagination(
       limit,
@@ -147,18 +154,20 @@ export class ApplicationFormController {
   @ApiResponse({
     example: { message: '입학 신청이 수정되었습니다.' },
   })
+  @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async updateApplication(
     @Param('id') id: number,
     @UploadedFiles() files: Express.Multer.File[], // 새로 추가되는 파일만 받음
     @Body() updateApplicationFormDto: UpdateApplicationFormDto,
+    @Req() req,
   ) {
-    console.log(updateApplicationFormDto);
     await this.applicationFormService.update(
       id,
       updateApplicationFormDto,
       files,
+      req.user,
     );
     return { message: '입학 신청이 수정되었습니다.' };
   }
@@ -168,9 +177,10 @@ export class ApplicationFormController {
   @ApiResponse({
     example: { message: '입학신청이 취소되었습니다.' },
   })
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async deleteApplication(@Param('id') id: number) {
-    await this.applicationFormService.remove(id);
+  async deleteApplication(@Param('id') id: number, @Req() req) {
+    await this.applicationFormService.remove(id, req.user);
     return { message: '입학신청이 취소되었습니다.' };
   }
 
@@ -188,11 +198,11 @@ export class ApplicationFormController {
       ],
     },
   })
+  @UseGuards(AuthGuard)
   @Get('user')
-  async findUserApplication() {
-    const user = { id: 1 }; //guard 적용 후 삭제
+  async findUserApplication(@Req() req) {
     const Form = await this.applicationFormService.findApplicationByUser(
-      user.id,
+      req.user.id,
     );
     return {
       message: '유저의 입학정보를 불러왔습니다.',
