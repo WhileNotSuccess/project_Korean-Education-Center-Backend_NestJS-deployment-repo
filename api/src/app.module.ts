@@ -20,7 +20,6 @@ import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApplicationAttachmentsModule } from './application-attachments/application-attachments.module';
 import { ApplicationAttachment } from './application-attachments/entities/application-attachment.entity';

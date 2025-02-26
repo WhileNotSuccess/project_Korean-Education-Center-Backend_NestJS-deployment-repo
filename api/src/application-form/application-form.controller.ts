@@ -12,8 +12,6 @@ import {
   UploadedFiles,
   UseGuards,
   Req,
-  BadRequestException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ApplicationFormService } from './application-form.service';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';

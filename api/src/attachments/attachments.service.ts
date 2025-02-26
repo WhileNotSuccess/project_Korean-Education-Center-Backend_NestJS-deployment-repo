@@ -1,12 +1,8 @@
 import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
+  Injectable
 } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Attachment } from './entities/attachment.entity';
-import * as fs from 'fs';
 import { PostImages } from './entities/post-images.entity';
 
 @Injectable()
@@ -54,18 +50,6 @@ export class AttachmentsService {
       await queryRunner.manager.delete(PostImages, {
         filename,
       });
-      const filePath = `/files/${filename}`;
-      if (!fs.existsSync(filePath)) {
-        throw new NotFoundException('파일을 찾을 수 없습니다.');
-      }
-      fs.unlink(filePath, (error) => {
-        if (error) {
-          throw new HttpException(
-            '파일 삭제 중 오류가 발생했습니다.',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-        }
-      });
     }
   }
 
@@ -78,14 +62,7 @@ export class AttachmentsService {
     queryRunner: QueryRunner,
   ) {
     for (let filename of filenames) {
-      console.log(filename);
       await queryRunner.manager.delete(Attachment, { filename });
-      const filePath = `/files/${filename}`;
-      if (!fs.existsSync(filePath)) {
-        throw new NotFoundException('파일을 찾을 수 없습니다.');
-      }
-      fs.unlink(filePath, (e) => console.log(e));
     }
-    return { message: '파일이 성공적으로 삭제되었습니다.' };
   }
 }
