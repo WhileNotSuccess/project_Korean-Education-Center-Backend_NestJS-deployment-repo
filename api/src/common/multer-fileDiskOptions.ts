@@ -2,9 +2,6 @@ import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
 import * as moment from 'moment-timezone';
-import path, { extname, join } from 'path';
-import * as uuid from 'uuid';
-import * as mime from 'mime-types';
 
 const refuseFiletype =
   /^(application\/(x-sh|x-msdownload|javascript|php|octet-stream)|text\/(html|plain|javascript|x-script)|image\/(svg\+xml|vnd\.microsoft\.icon))$/i;

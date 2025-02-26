@@ -1,9 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Multer } from 'multer';
 import { transactional } from 'src/common/utils/transaction-helper';
 import { DataSource, QueryRunner } from 'typeorm';
 import { ApplicationAttachment } from './entities/application-attachment.entity';
-import * as fs from 'fs';
 import { ApplicationForm } from 'src/application-form/entities/application-form.entity';
 import checkOwnership from 'src/common/utils/checkOwnership';
 
@@ -53,7 +52,6 @@ export class ApplicationAttachmentsService {
   async deleteByApplication(filenames: string[], queryRunner: QueryRunner) {
     filenames.forEach(async (filename) => {
       await queryRunner.manager.delete(ApplicationAttachment, { filename });
-      fs.unlink(filename, (e) => console.log(e));
     });
   }
 }

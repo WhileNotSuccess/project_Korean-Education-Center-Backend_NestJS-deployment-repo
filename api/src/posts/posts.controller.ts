@@ -11,8 +11,6 @@ import {
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
-  Res,
-  UploadedFile,
   DefaultValuePipe,
   NotFoundException,
   UseGuards,
@@ -24,8 +22,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { AttachmentsService } from 'src/attachments/attachments.service';
 import { Request, Response } from 'express';
 import { Multer } from 'multer';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ImageDiskOptions } from 'src/common/multer-imageDiskoptions';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,

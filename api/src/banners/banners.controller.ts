@@ -11,8 +11,7 @@ import {
   Query,
   DefaultValuePipe,
   UseGuards,
-  Req,
-  UnauthorizedException,
+  Req
 } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -28,7 +27,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('Banner')

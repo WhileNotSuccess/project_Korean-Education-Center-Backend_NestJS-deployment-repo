@@ -20,7 +20,6 @@ export class BannersService {
   }
 
   async findAll(ignore: boolean, language: string) {
-    console.log(ignore);
     const query = await this.dataSource
       .createQueryBuilder()
       .select('banner')

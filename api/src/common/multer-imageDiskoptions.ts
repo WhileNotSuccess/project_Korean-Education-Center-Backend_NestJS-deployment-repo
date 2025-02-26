@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as moment from 'moment-timezone';
 import * as uuid from 'uuid';
 import * as mime from 'mime-types'
-import path from 'path';
 
 const allowFiletype = /\/(jpg|jpeg|png|gif|bmp|webp)$/;
 
