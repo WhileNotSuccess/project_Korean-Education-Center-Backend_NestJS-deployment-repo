@@ -119,14 +119,14 @@ export class ApplicationFormService {
   ) {
     await checkOwnership(user, ApplicationForm, id, this.dataSource);
     await transactional(this.dataSource, async (queryRunner) => {
-      if (updateApplicationFormDto.deleteFilePath) {
+      if (updateApplicationFormDto.deleteFilePath) { //삭제할 파일들의 경로 
         const deleteFiles = JSON.parse(updateApplicationFormDto.deleteFilePath);
         await this.applicationAttachment.deleteByApplication(
           deleteFiles,
           queryRunner,
         );
       }
-      if (!(files.length == 0)) {
+      if (!(files.length == 0)) { //새로 추가할 파일
         await this.applicationAttachment.createByApplication(
           files,
           queryRunner,

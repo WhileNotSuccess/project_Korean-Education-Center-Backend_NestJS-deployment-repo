@@ -14,6 +14,7 @@ import * as levenshtein from 'fast-levenshtein';
 import { findFiles } from 'src/common/fileArrayFind';
 import { PostImages } from 'src/attachments/entities/post-images.entity';
 import { User } from 'src/users/entities/user.entity';
+import checkOwnership from 'src/common/utils/checkOwnership';
 
 @Injectable()
 export class PostsService {
@@ -137,13 +138,11 @@ export class PostsService {
     id: number,
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
-    userId: number,
-    email: string,
+    user
   ) {
-    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
-    if (email !== process.env.ADMIN_EMAIL && oldPost.userId !== userId) {
-      throw new UnauthorizedException('권한이 없습니다.');
-    }
+    
+    await checkOwnership(user,Post,id,this.datasource)
+    
     const oldPostImages = await this.datasource.manager.find(PostImages, {
       where: { postId: id },
       select: ['filename'],
@@ -197,11 +196,8 @@ export class PostsService {
     });
   }
 
-  async remove(id: number, userId: number, email: string) {
-    const oldPost = await this.datasource.manager.findOneBy(Post, { id });
-    if (email !== process.env.ADMIN_EMAIL && oldPost.userId !== userId) {
-      throw new UnauthorizedException('권한이 없습니다.');
-    }
+  async remove(id: number, user) {
+    await checkOwnership(user,Post,id,this.datasource)
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
     });

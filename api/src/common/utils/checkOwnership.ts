@@ -18,8 +18,8 @@ export default async function checkOwnership<T extends ObjectLiteral>(
   if (!target) {
     throw new Error('Entity not found');
   }
-
-  if (target.userId !== user.id) {
+  
+  if (target.userId != user.id) {
     throw new UnauthorizedException('권한이 없습니다.');
   }
   return true;
