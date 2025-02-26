@@ -71,6 +71,7 @@ export class PostsController {
     );
 
     return {
+      message:'모집요강과 입학신청서를 불러왔습니다.',
       guidelinesForApplicantsFileName: guidelinesForApplicants.filename,
       guidelinesForApplicantsImageName: guidelinesForApplicants.image,
       applicationFileName: applicants.filename,
@@ -345,8 +346,7 @@ export class PostsController {
       id,
       updatePostDto,
       files,
-      req.user.id,
-      req.user.email,
+      req.user
     );
     return { message: '글이 수정되었습니다.' };
   }
@@ -357,7 +357,7 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Delete(':id') // 완료
   async remove(@Param('id') id: number, @Req() req) {
-    await this.postsService.remove(id, req.user.id, req.user.email);
+    await this.postsService.remove(id, req.user);
     return { message: '글이 삭제되었습니다.' };
   }
 

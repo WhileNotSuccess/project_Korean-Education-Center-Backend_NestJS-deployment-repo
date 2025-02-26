@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm";
-// npm run typeorm migration:generate ./src/migrations/CreateTables -- -d /app/src/ormconfig.ts
+// npm run typeorm migration:generate ./src/migrations/CreateTables -- -d ./src/ormconfig.ts
 // npm run typeorm migration:run -- -d ./src/ormconfig.ts 
 export const AppDataSource = new DataSource({
     type:'mysql',

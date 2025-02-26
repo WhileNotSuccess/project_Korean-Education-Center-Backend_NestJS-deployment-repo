@@ -29,6 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('Banner')
 @Controller('banners')
@@ -60,7 +61,7 @@ export class BannersController {
       message: '배너가 작성되었습니다.',
     },
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(AdminGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async create(
@@ -68,9 +69,6 @@ export class BannersController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req,
   ) {
-    if (req.user.email !== process.env.ADMIN_EMAIL) {
-      throw new UnauthorizedException('권한이 없습니다.');
-    }
     await this.bannersService.create(createBannerDto, file);
     return { message: '배너가 작성되었습니다.' };
   }
@@ -133,7 +131,7 @@ export class BannersController {
     },
   })
   @ApiConsumes('multipart/form-data')
-  @UseGuards(AuthGuard)
+  @UseGuards(AdminGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async update(
@@ -142,9 +140,6 @@ export class BannersController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req,
   ) {
-    if (req.user.email !== process.env.ADMIN_EMAIL) {
-      throw new UnauthorizedException('권한이 없습니다.');
-    }
     await this.bannersService.update(id, updateBannerDto, file);
     return { message: '배너가 수정되었습니다.' };
   }
@@ -159,12 +154,9 @@ export class BannersController {
       message: '배너가 삭제되었습니다.',
     },
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(AdminGuard)
   @Delete(':id')
   async remove(@Param('id') id: number, @Req() req) {
-    if (req.user.email !== process.env.ADMIN_EMAIL) {
-      throw new UnauthorizedException('권한이 없습니다.');
-    }
     await this.bannersService.remove(id);
     return {
       message: '배너가 삭제되었습니다.',
