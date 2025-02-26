@@ -51,6 +51,7 @@ export class ApplicationFormController {
           description: '입학 신청서류',
         },
         course: { type: 'string', description: '신청 전공' },
+        phoneNumber:{type:'string', description:'신청자의 연락처'},
       },
     },
   })
@@ -94,6 +95,7 @@ export class ApplicationFormController {
           id: 1,
           userId: 1,
           course: 'korean',
+          phoneNumber:'010-1234-5678',
           createdDate: '2025-01-31T15:12:47.145Z',
           isDone: false,
           userName: '문성윤',
@@ -142,6 +144,7 @@ export class ApplicationFormController {
             '새로 추가하는 입학 신청서류, 서류가 없을 경우 필수 아님',
         },
         course: { type: 'string', description: '신청 전공, 필수 아님' },
+        phoneNumber:{type:'string', description:'연락처, 필수 아님'},
         isDone: { type: 'boolean', description: '처리 여부, 필수 아님' },
         deleteFilePath: {
           type: 'string',

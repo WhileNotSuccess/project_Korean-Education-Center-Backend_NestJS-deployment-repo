@@ -22,6 +22,8 @@ export class ApplicationForm {
   createdDate: Date;
   @Column({ default: false })
   isDone: boolean;
+  @Column({length:30})
+  phoneNumber:string
   @OneToMany(
     () => ApplicationAttachment,
     (attachment) => attachment.applicationId,

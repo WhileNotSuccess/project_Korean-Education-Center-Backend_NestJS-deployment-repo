@@ -4,4 +4,6 @@ import { Language } from "../../common/language.enum";
 export class CreateApplicationFormDto {
     @IsString()
     course:Language
+    @IsString()
+    phoneNumber:string
 }

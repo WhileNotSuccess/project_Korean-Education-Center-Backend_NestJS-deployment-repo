@@ -55,6 +55,7 @@ export class ApplicationFormService {
         'form.id AS id',
         'form.userId AS userId',
         'form.course AS course',
+        'form.phoneNumber AS phoneNumber',
         'form.createdDate AS createdDate',
         'form.isDone AS isDone',
       ])
@@ -75,17 +76,17 @@ export class ApplicationFormService {
         ) AS attachments
       `,
       )
-      .addSelect(['user.name AS userName'])
-      .addSelect(['user.email AS userEmail'])
+      .addSelect(['user.name AS userName','user.email AS userEmail'])
       .groupBy('form.id')
-      .orderBy('form.createdDate', 'ASC');
-
+      .orderBy('form.isDone','ASC')
+      .addOrderBy('form.createdDate', 'ASC');
+      
     if (!isDone) {
       queryRunner.where('form.isDone = :isDone', { isDone: false });
     }
-    queryRunner.skip((page - 1) * take).take(take);
+    queryRunner.offset((page - 1) * take).limit(take); //rawData를 불러올 경우 skip, limit가 작동 안함=> offset, limit로 변경 
     const rawData = await queryRunner.getRawMany();
-
+    
     // MySQL의 `GROUP_CONCAT()`은 문자열로 반환되므로, JSON으로 변환
     const formattedData = rawData.map((row) => ({
       ...row,
@@ -136,7 +137,7 @@ export class ApplicationFormService {
       const { deleteFilePath, ...array } = updateApplicationFormDto;
       await queryRunner.manager.update(ApplicationForm, id, {
         ...array,
-        isDone: array.isDone === 'false' ? false : true,
+        isDone: array.isDone === 'true' ? true : false,
       });
     });
   }
@@ -156,6 +157,7 @@ export class ApplicationFormService {
       .select([
         'form.id AS Id',
         'form.course AS course',
+        'form.phoneNumber AS phoneNumber',
         'form.createdDate AS createdDate',
         'form.isDone AS isDone',
       ])
