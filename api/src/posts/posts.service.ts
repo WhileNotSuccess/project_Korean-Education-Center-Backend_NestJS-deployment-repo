@@ -138,11 +138,10 @@ export class PostsService {
     id: number,
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
-    user
+    user,
   ) {
-    
-    await checkOwnership(user,Post,id,this.datasource)
-    
+    await checkOwnership(user, Post, id, this.datasource);
+
     const oldPostImages = await this.datasource.manager.find(PostImages, {
       where: { postId: id },
       select: ['filename'],
@@ -197,7 +196,7 @@ export class PostsService {
   }
 
   async remove(id: number, user) {
-    await checkOwnership(user,Post,id,this.datasource)
+    await checkOwnership(user, Post, id, this.datasource);
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
     });
@@ -216,7 +215,9 @@ export class PostsService {
       .from(Post, 'post')
       .leftJoin(User, 'user', 'post.userId = user.id');
     queryBuilder.where('category = :category', { category });
-    queryBuilder.select('*');
+    queryBuilder.select(
+      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language , post.expiredDate AS expiredDate, user.name AS author',
+    );
     let results = await queryBuilder.getRawMany();
 
     if (title) {
@@ -230,7 +231,7 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           expiredDate: post.expiredDate,
-          author: post.name,
+          author: post.author,
           include: (post.title as string).indexOf(title) !== -1,
           distance: levenshtein.get(post.title, title),
         }))
@@ -247,7 +248,7 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           expiredDate: post.expiredDate,
-          author: post.name,
+          author: post.author,
           include: (post.author as string).indexOf(author) !== -1,
           distance: levenshtein.get(post.author, author),
         }))
@@ -264,7 +265,7 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           expiredDate: post.expiredDate,
-          author: post.name,
+          author: post.author,
           include: (post.content as string).indexOf(content) !== -1,
           distance: levenshtein.get(post.content, content),
         }))
