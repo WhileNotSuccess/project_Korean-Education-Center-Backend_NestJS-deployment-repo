@@ -295,7 +295,7 @@ export class PostsController {
       ) &&
       req.user.email !== process.env.ADMIN_EMAIL
     ) {
-      throw new UnauthorizedException('관리자만 작성가능합니다');
+      throw new UnauthorizedException('관리자만 작성가능합니다.');
     }
 
     await this.postsService.create(createPostDto, req.user.id, files);
