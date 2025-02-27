@@ -123,10 +123,12 @@ export class ApplicationFormController {
     @Query('ignore', new DefaultValuePipe(false)) ignore: boolean,
     @Req() req,
   ) {
+    const language=req.cookies['language']||'korean'
     return await this.applicationFormService.findPagination(
       limit,
       page,
       ignore,
+      language,
     );
   }
 

@@ -1,9 +1,8 @@
-import { IsString } from "class-validator";
-import { Language } from "../../common/language.enum";
+import { IsNumber, IsString } from "class-validator";
 
 export class CreateApplicationFormDto {
-    @IsString()
-    course:Language
+    @IsNumber()
+    course:number
     @IsString()
     phoneNumber:string
 }
