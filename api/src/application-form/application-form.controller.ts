@@ -204,8 +204,10 @@ export class ApplicationFormController {
   @UseGuards(AuthGuard)
   @Get('user')
   async findUserApplication(@Req() req) {
+    const language=req.cookies['language']||'korean'
     const Form = await this.applicationFormService.findApplicationByUser(
       req.user.id,
+      language
     );
     return {
       message: '유저의 입학정보를 불러왔습니다.',

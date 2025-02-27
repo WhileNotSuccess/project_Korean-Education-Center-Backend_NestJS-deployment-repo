@@ -156,14 +156,14 @@ export class ApplicationFormService {
     });
   }
 
-  async findApplicationByUser(userId: number) {
+  async findApplicationByUser(userId: number,language:Language) {
     const queryRunner = await this.dataSource
       .getRepository(ApplicationForm)
       .createQueryBuilder('form')
       .leftJoin(ApplicationAttachment, 'attach', 'form.id=attach.applicationId')
+      .leftJoin(Course,'course','form.course=course.id')
       .select([
         'form.id AS Id',
-        'form.course AS course',
         'form.phoneNumber AS phoneNumber',
         'form.createdDate AS createdDate',
         'form.isDone AS isDone',
@@ -184,6 +184,12 @@ export class ApplicationFormService {
       ) AS attachments
     `,
       )
+      switch(language){
+        case 'korean':queryRunner.addSelect('course.Korean AS course')
+        case 'japanese':queryRunner.addSelect('course.Japanese AS course')
+        case 'english':queryRunner.addSelect('course.English AS course')
+      }
+    queryRunner
       .groupBy('form.id')
       .where('form.userId= :userId', { userId });
     const rawData = await queryRunner.getRawMany();
