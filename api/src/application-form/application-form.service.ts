@@ -1,6 +1,4 @@
-import {
-  Injectable
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateApplicationFormDto } from './dto/create-application-form.dto';
 import { UpdateApplicationFormDto } from './dto/update-application-form.dto';
 import { transactional } from 'src/common/utils/transaction-helper';
@@ -10,6 +8,7 @@ import { ApplicationAttachmentsService } from 'src/application-attachments/appli
 import { ApplicationAttachment } from 'src/application-attachments/entities/application-attachment.entity';
 import { User } from 'src/users/entities/user.entity';
 import checkOwnership from 'src/common/utils/checkOwnership';
+import { Course } from 'src/course/entities/course.entity';
 
 @Injectable()
 export class ApplicationFormService {
@@ -24,9 +23,13 @@ export class ApplicationFormService {
     userId: number,
   ) {
     await transactional(this.dataSource, async (queryRunner) => {
+      const courseName = await this.dataSource.manager.findOneBy(Course, {
+        id: +createApplicationFormDto.course,
+      });
       const applicationId = (
         await queryRunner.manager.save(ApplicationForm, {
           ...createApplicationFormDto,
+          course: courseName.name,
           userId,
         })
       ).id;
@@ -74,17 +77,17 @@ export class ApplicationFormService {
         ) AS attachments
       `,
       )
-      .addSelect(['user.name AS userName','user.email AS userEmail'])
+      .addSelect(['user.name AS userName', 'user.email AS userEmail'])
       .groupBy('form.id')
-      .orderBy('form.isDone','ASC')
+      .orderBy('form.isDone', 'ASC')
       .addOrderBy('form.createdDate', 'ASC');
-      
+
     if (!isDone) {
       queryRunner.where('form.isDone = :isDone', { isDone: false });
     }
-    queryRunner.offset((page - 1) * take).limit(take); //rawData를 불러올 경우 skip, limit가 작동 안함=> offset, limit로 변경 
+    queryRunner.offset((page - 1) * take).limit(take); //rawData를 불러올 경우 skip, limit가 작동 안함=> offset, limit로 변경
     const rawData = await queryRunner.getRawMany();
-    
+
     // MySQL의 `GROUP_CONCAT()`은 문자열로 반환되므로, JSON으로 변환
     const formattedData = rawData.map((row) => ({
       ...row,
@@ -118,14 +121,16 @@ export class ApplicationFormService {
   ) {
     await checkOwnership(user, ApplicationForm, id, this.dataSource);
     await transactional(this.dataSource, async (queryRunner) => {
-      if (updateApplicationFormDto.deleteFilePath) { //삭제할 파일들의 경로 
+      if (updateApplicationFormDto.deleteFilePath) {
+        //삭제할 파일들의 경로
         const deleteFiles = JSON.parse(updateApplicationFormDto.deleteFilePath);
         await this.applicationAttachment.deleteByApplication(
           deleteFiles,
           queryRunner,
         );
       }
-      if (!(files.length == 0)) { //새로 추가할 파일
+      if (!(files.length == 0)) {
+        //새로 추가할 파일
         await this.applicationAttachment.createByApplication(
           files,
           queryRunner,
