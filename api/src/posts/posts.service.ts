@@ -40,10 +40,12 @@ export class PostsService {
         return post;
 
       case 'number': //게시글 찾을 경우
+
         post = await this.datasource.manager.findOne(Post, {
           where: { id: find },
           relations: ['user'],
         });
+        if(!post)return null
         const res = { ...post, user: '', author: post.user.name };
         return res;
     }
@@ -79,9 +81,14 @@ export class PostsService {
     });
 
     if (total == 0) {
-      throw new BadRequestException(
-        `${category}카테고리 글이 존재하지 않습니다.`,
-      );
+      return {
+        message:`${category}글이 존재하지 않습니다.`,
+        data:[],
+        currentPage:1,
+        prevPage:null,
+        nextPage:null,
+        totalPage:1,
+      }
     }
 
     const totalPage = Math.ceil(total / take);

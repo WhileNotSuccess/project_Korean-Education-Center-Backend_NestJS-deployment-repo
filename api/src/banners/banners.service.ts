@@ -30,7 +30,7 @@ export class BannersService {
     }
     // sql문으로 NOW()가 현재 날짜,시간을 계산하여 현재 날짜보다 높은(나중인) banner들을 다 가져옴
     // ignore가 true 라면 expiredDate 열과 상관없이 모든 Banner를 불러옴
-    return { message: '배너를 불러왔습니다', data: await query.getMany() };
+    return await query.getMany() 
   }
 
   async update(
