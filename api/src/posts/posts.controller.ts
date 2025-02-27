@@ -167,7 +167,6 @@ export class PostsController {
         createdDate: '2025-01-31T15:12:47.145Z',
         updatedDate: '2025-01-31T15:12:58.281Z',
         language: 'korean',
-        expiredDate: null,
       },
       files: [
         {
@@ -194,9 +193,11 @@ export class PostsController {
 
     const post = await this.postsService.getOne(find, language); //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
     if (!post) {
-      throw new NotFoundException(
-        `${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
-      );
+      return {
+        message:`${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
+        data:[],
+        files:[],
+      }
       // 글을 찾지 못했을 경우 없다는 return
     }
     return {
@@ -236,7 +237,6 @@ export class PostsController {
           createdDate: '2025-01-31T15:12:47.145Z',
           updatedDate: '2025-01-31T15:12:58.281Z',
           language: 'korean',
-          expiredDate: null,
         },
       ],
       currentPage: 1,
@@ -275,7 +275,6 @@ export class PostsController {
         title: { type: 'string', description: '글의 제목, 필수' },
         content: { type: 'string', description: '글의 내용, 필수' },
         language: { type: 'string', description: '글의 언어, 필수' },
-        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' },
       },
     },
   })
@@ -318,7 +317,6 @@ export class PostsController {
         title: { type: 'string', description: '글의 제목, 필수 아님' },
         content: { type: 'string', description: '글의 내용, 필수 아님' },
         language: { type: 'string', description: '글의 언어, 필수 아님' },
-        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' },
         deleteFilePath: {
           type: 'string',
           description:

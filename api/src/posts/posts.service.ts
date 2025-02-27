@@ -40,10 +40,12 @@ export class PostsService {
         return post;
 
       case 'number': //게시글 찾을 경우
+
         post = await this.datasource.manager.findOne(Post, {
           where: { id: find },
           relations: ['user'],
         });
+        if(!post)return null
         const res = { ...post, user: '', author: post.user.name };
         return res;
     }
@@ -79,9 +81,14 @@ export class PostsService {
     });
 
     if (total == 0) {
-      throw new BadRequestException(
-        `${category}카테고리 글이 존재하지 않습니다.`,
-      );
+      return {
+        message:`${category}글이 존재하지 않습니다.`,
+        data:[],
+        currentPage:1,
+        prevPage:null,
+        nextPage:null,
+        totalPage:1,
+      }
     }
 
     const totalPage = Math.ceil(total / take);
@@ -215,7 +222,7 @@ export class PostsService {
       .leftJoin(User, 'user', 'post.userId = user.id');
     queryBuilder.where('category = :category', { category });
     queryBuilder.select(
-      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language , post.expiredDate AS expiredDate, user.name AS author',
+      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, user.name AS author',
     );
     let results = await queryBuilder.getRawMany();
 
@@ -229,7 +236,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.title as string).indexOf(title) !== -1,
           distance: levenshtein.get(post.title, title),
@@ -246,7 +252,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.author as string).indexOf(author) !== -1,
           distance: levenshtein.get(post.author, author),
@@ -263,7 +268,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.content as string).indexOf(content) !== -1,
           distance: levenshtein.get(post.content, content),

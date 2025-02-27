@@ -16,8 +16,8 @@ export class ApplicationForm {
   id: number;
   @Column()
   userId: number;
-  @Column({ length: 20 })
-  course: string;
+  @Column()
+  course: number;
   @CreateDateColumn()
   createdDate: Date;
   @Column({ default: false })

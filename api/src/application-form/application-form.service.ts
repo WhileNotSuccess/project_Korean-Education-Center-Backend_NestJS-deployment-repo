@@ -9,6 +9,7 @@ import { ApplicationAttachment } from 'src/application-attachments/entities/appl
 import { User } from 'src/users/entities/user.entity';
 import checkOwnership from 'src/common/utils/checkOwnership';
 import { Course } from 'src/course/entities/course.entity';
+import { Language } from 'src/common/language.enum';
 
 @Injectable()
 export class ApplicationFormService {
@@ -23,13 +24,9 @@ export class ApplicationFormService {
     userId: number,
   ) {
     await transactional(this.dataSource, async (queryRunner) => {
-      const courseName = await this.dataSource.manager.findOneBy(Course, {
-        id: +createApplicationFormDto.course,
-      });
       const applicationId = (
         await queryRunner.manager.save(ApplicationForm, {
           ...createApplicationFormDto,
-          course: courseName.name,
           userId,
         })
       ).id;
@@ -42,7 +39,7 @@ export class ApplicationFormService {
     });
   }
 
-  async findPagination(take: number, page: number, isDone: boolean) {
+  async findPagination(take: number, page: number, isDone: boolean,language:Language) {
     const queryRunner = this.dataSource
       .getRepository(ApplicationForm)
       .createQueryBuilder('form')
@@ -52,10 +49,10 @@ export class ApplicationFormService {
         'attachment.applicationId = form.id',
       )
       .leftJoin(User, 'user', 'user.id = form.userId')
+      .leftJoin(Course,'course','form.course = course.id')
       .select([
         'form.id AS id',
         'form.userId AS userId',
-        'form.course AS course',
         'form.phoneNumber AS phoneNumber',
         'form.createdDate AS createdDate',
         'form.isDone AS isDone',
@@ -77,11 +74,18 @@ export class ApplicationFormService {
         ) AS attachments
       `,
       )
+
       .addSelect(['user.name AS userName', 'user.email AS userEmail'])
+    switch (language){
+        case 'korean':queryRunner.addSelect('course.Korean AS course')
+        case 'japanese':queryRunner.addSelect('course.Japanese AS course')
+        case 'english':queryRunner.addSelect('course.English AS course')
+      }
+    queryRunner
       .groupBy('form.id')
       .orderBy('form.isDone', 'ASC')
       .addOrderBy('form.createdDate', 'ASC');
-
+      
     if (!isDone) {
       queryRunner.where('form.isDone = :isDone', { isDone: false });
     }
@@ -152,14 +156,14 @@ export class ApplicationFormService {
     });
   }
 
-  async findApplicationByUser(userId: number) {
+  async findApplicationByUser(userId: number,language:Language) {
     const queryRunner = await this.dataSource
       .getRepository(ApplicationForm)
       .createQueryBuilder('form')
       .leftJoin(ApplicationAttachment, 'attach', 'form.id=attach.applicationId')
+      .leftJoin(Course,'course','form.course=course.id')
       .select([
         'form.id AS Id',
-        'form.course AS course',
         'form.phoneNumber AS phoneNumber',
         'form.createdDate AS createdDate',
         'form.isDone AS isDone',
@@ -180,6 +184,12 @@ export class ApplicationFormService {
       ) AS attachments
     `,
       )
+      switch(language){
+        case 'korean':queryRunner.addSelect('course.Korean AS course')
+        case 'japanese':queryRunner.addSelect('course.Japanese AS course')
+        case 'english':queryRunner.addSelect('course.English AS course')
+      }
+    queryRunner
       .groupBy('form.id')
       .where('form.userId= :userId', { userId });
     const rawData = await queryRunner.getRawMany();

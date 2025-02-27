@@ -98,10 +98,11 @@ export class BannersController {
     @Query('ignore', new DefaultValuePipe(false)) ignore: boolean,
     @Req() req,
   ) {
-    return await this.bannersService.findAll(
+    const data=await this.bannersService.findAll(
       ignore,
       req.cookies['language'] || 'korean',
     );
+    return { message: '배너를 불러왔습니다', data:data }
   }
 
   @ApiOperation({ summary: '배너 수정하기' })
