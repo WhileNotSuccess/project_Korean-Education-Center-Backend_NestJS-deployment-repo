@@ -32,8 +32,6 @@ export class Post {
   updatedDate: Date;
   @Column({ type: 'enum', enum: Language, default: Language.KOREAN })
   language: string;
-  @Column({ nullable: true })
-  expiredDate: Date;
   @OneToMany(() => Attachment, (attach) => attach.postId, {
     onDelete: 'CASCADE',
   })

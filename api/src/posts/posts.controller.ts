@@ -167,7 +167,6 @@ export class PostsController {
         createdDate: '2025-01-31T15:12:47.145Z',
         updatedDate: '2025-01-31T15:12:58.281Z',
         language: 'korean',
-        expiredDate: null,
       },
       files: [
         {
@@ -238,7 +237,6 @@ export class PostsController {
           createdDate: '2025-01-31T15:12:47.145Z',
           updatedDate: '2025-01-31T15:12:58.281Z',
           language: 'korean',
-          expiredDate: null,
         },
       ],
       currentPage: 1,
@@ -277,7 +275,6 @@ export class PostsController {
         title: { type: 'string', description: '글의 제목, 필수' },
         content: { type: 'string', description: '글의 내용, 필수' },
         language: { type: 'string', description: '글의 언어, 필수' },
-        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' },
       },
     },
   })
@@ -320,7 +317,6 @@ export class PostsController {
         title: { type: 'string', description: '글의 제목, 필수 아님' },
         content: { type: 'string', description: '글의 내용, 필수 아님' },
         language: { type: 'string', description: '글의 언어, 필수 아님' },
-        expiredDate: { type: 'Date', description: '글의 만료일자, 필수 아님' },
         deleteFilePath: {
           type: 'string',
           description:

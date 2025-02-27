@@ -222,7 +222,7 @@ export class PostsService {
       .leftJoin(User, 'user', 'post.userId = user.id');
     queryBuilder.where('category = :category', { category });
     queryBuilder.select(
-      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language , post.expiredDate AS expiredDate, user.name AS author',
+      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, user.name AS author',
     );
     let results = await queryBuilder.getRawMany();
 
@@ -236,7 +236,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.title as string).indexOf(title) !== -1,
           distance: levenshtein.get(post.title, title),
@@ -253,7 +252,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.author as string).indexOf(author) !== -1,
           distance: levenshtein.get(post.author, author),
@@ -270,7 +268,6 @@ export class PostsService {
           language: post.language,
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
-          expiredDate: post.expiredDate,
           author: post.author,
           include: (post.content as string).indexOf(content) !== -1,
           distance: levenshtein.get(post.content, content),

@@ -9,7 +9,4 @@ export class CreatePostDto {
   content: string;
   @IsString()
   language: string;
-  @IsDate()
-  @IsOptional()
-  expiredDate: Date;
 }
