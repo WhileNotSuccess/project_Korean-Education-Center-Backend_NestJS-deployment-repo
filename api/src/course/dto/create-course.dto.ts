@@ -8,19 +8,19 @@ export class CreateCourseDto {
     description: '강좌명',
     example: '강좌1',
   })
-  Korean: string;
+  korean: string;
   @IsString()
   @ApiProperty({
     name: 'Japanese',
     description: '講座名',
     example: '講座1',
   })
-  Japanese: string;
+  japanese: string;
   @IsString()
   @ApiProperty({
     name: 'English',
     description: 'CourseName',
     example: 'Course1',
   })
-  English: string;
+  english: string;
 }

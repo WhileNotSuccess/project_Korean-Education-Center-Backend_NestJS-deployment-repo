@@ -6,10 +6,10 @@ export class Course {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ length: 20 })
-  Korean:string;
+  korean:string;
   @Column({ length: 20 })
-  Japanese:string;  
+  japanese:string;  
   @Column({ length: 20 })
-  English:string;
+  english:string;
 }
 
