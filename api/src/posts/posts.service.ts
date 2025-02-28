@@ -212,6 +212,7 @@ export class PostsService {
     category: string,
     page: number,
     limit: number,
+    language:string,
     title?: string,
     author?: string,
     content?: string,
@@ -220,7 +221,7 @@ export class PostsService {
     queryBuilder
       .from(Post, 'post')
       .leftJoin(User, 'user', 'post.userId = user.id');
-    queryBuilder.where('category = :category', { category });
+    queryBuilder.where('category = :category', { category }).andWhere('language=:language',{language})
     queryBuilder.select(
       'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, user.name AS author',
     );
@@ -321,7 +322,6 @@ export class PostsService {
       const match = regex.exec(element.content);
 
       if (match) {
-        console.log(match[1].replace(`${process.env.BACKEND_URL}/`, ''));
         slideList.push({
           title: element.title,
           image: match[1].replace(`${process.env.BACKEND_URL}/`, ''),
@@ -330,6 +330,7 @@ export class PostsService {
       }
     }
 
+    console.log(slideList)
     return slideList;
   }
 }

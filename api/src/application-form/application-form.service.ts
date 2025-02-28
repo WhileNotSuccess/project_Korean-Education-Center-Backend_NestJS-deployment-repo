@@ -77,9 +77,9 @@ export class ApplicationFormService {
 
       .addSelect(['user.name AS userName', 'user.email AS userEmail'])
     switch (language){
-        case 'korean':queryRunner.addSelect('course.Korean AS course')
-        case 'japanese':queryRunner.addSelect('course.Japanese AS course')
-        case 'english':queryRunner.addSelect('course.English AS course')
+        case 'korean':queryRunner.addSelect('course.korean AS course')
+        case 'japanese':queryRunner.addSelect('course.japanese AS course')
+        case 'english':queryRunner.addSelect('course.english AS course')
       }
     queryRunner
       .groupBy('form.id')
@@ -185,9 +185,9 @@ export class ApplicationFormService {
     `,
       )
       switch(language){
-        case 'korean':queryRunner.addSelect('course.Korean AS course')
-        case 'japanese':queryRunner.addSelect('course.Japanese AS course')
-        case 'english':queryRunner.addSelect('course.English AS course')
+        case 'korean':queryRunner.addSelect('course.korean AS course')
+        case 'japanese':queryRunner.addSelect('course.japanese AS course')
+        case 'english':queryRunner.addSelect('course.english AS course')
       }
     queryRunner
       .groupBy('form.id')
