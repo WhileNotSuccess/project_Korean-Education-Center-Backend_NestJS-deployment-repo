@@ -118,6 +118,7 @@ export class PostsController {
   })
   @Get('search')
   async search(
+    @Req() req,
     @Query('limit', new DefaultValuePipe(10)) limit: number,
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Query('category') category: string,
@@ -125,6 +126,7 @@ export class PostsController {
     @Query('author') author?: string,
     @Query('content') content?: string,
   ) {
+    const language=req.cookies['language']||'korean'
     const filter = { title, author, content };
     const selectedFilters = Object.values(filter).filter((value) => value);
     if (selectedFilters.length !== 1) {
@@ -136,9 +138,11 @@ export class PostsController {
       category,
       page,
       limit,
+      language,
       title,
       author,
       content,
+      
     );
   }
 
