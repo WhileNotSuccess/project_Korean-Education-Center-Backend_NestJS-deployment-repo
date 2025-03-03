@@ -32,6 +32,7 @@ import { Course } from './course/entities/course.entity';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: '/files',
+      serveRoot: '/api',
     }),
     ConfigModule.forRoot({
       isGlobal: true,
