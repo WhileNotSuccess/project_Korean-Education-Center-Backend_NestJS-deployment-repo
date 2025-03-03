@@ -43,8 +43,6 @@ jobs:
             -e DB_HOST=${{ secrets.DB_HOST }} \
             -e DB_DATABASE=${{ secrets.DB_DATABASE }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            -e EMAIL_USER=${{ secrets.EMAIL_USER }} \
-            -e EMAIL_PASS=${{ secrets.EMAIL_PASS }} \
             -e BACKEND_URL=${{ secrets.BACKEND_URL }} \
             -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
             -e GOOGLE_SECRET=${{ secrets.GOOGLE_SECRET }} \
@@ -53,5 +51,6 @@ jobs:
             -e BACKEND_URL=${{ secrets.BACKEND_URL }} \
             -e COOKIE_DOMAIN=${{ secrets.COOKIE_DOMAIN }} \
             -e ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
+            -e REFRESH_TOKEN=${{ secrets.REFRESH_TOKEN }} \
             -v ~/files:/files \
             ${{ secrets.DOCKER_USERNAME }}/koreannestjs:latest
