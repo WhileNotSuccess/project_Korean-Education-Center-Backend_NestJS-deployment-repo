@@ -1,15 +1,17 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Language } from 'src/common/language.enum';
+import { ApplicationForm } from '../../application-form/entities/application-form.entity';
 
 @Entity()
 export class Course {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ length: 20 })
-  korean:string;
+  korean: string;
   @Column({ length: 20 })
-  japanese:string;  
+  japanese: string;
   @Column({ length: 20 })
-  english:string;
+  english: string;
+  @OneToMany(() => ApplicationForm, (applicationForm) => applicationForm.course)
+  applicationForm: ApplicationForm[];
 }
-

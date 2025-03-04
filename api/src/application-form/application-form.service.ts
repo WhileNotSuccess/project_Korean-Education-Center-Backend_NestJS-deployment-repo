@@ -39,7 +39,7 @@ export class ApplicationFormService {
     });
   }
 
-  async findPagination(take: number, page: number, isDone: boolean,language:Language) {
+  async findPagination(take: number, page: number, isDone: boolean) {
     const queryRunner = this.dataSource
       .getRepository(ApplicationForm)
       .createQueryBuilder('form')
@@ -49,7 +49,7 @@ export class ApplicationFormService {
         'attachment.applicationId = form.id',
       )
       .leftJoin(User, 'user', 'user.id = form.userId')
-      .leftJoin(Course,'course','form.course = course.id')
+      .leftJoin(Course, 'course', 'form.course = course.id')
       .select([
         'form.id AS id',
         'form.userId AS userId',
@@ -74,22 +74,22 @@ export class ApplicationFormService {
         ) AS attachments
       `,
       )
-
       .addSelect(['user.name AS userName', 'user.email AS userEmail'])
-    switch (language){
-        case 'korean':queryRunner.addSelect('course.korean AS course')
-        case 'japanese':queryRunner.addSelect('course.japanese AS course')
-        case 'english':queryRunner.addSelect('course.english AS course')
-      }
+      .addSelect([
+        'course.korean AS korean',
+        'course.japanese AS japanese',
+        'course.english AS english',
+      ]);
     queryRunner
       .groupBy('form.id')
       .orderBy('form.isDone', 'ASC')
       .addOrderBy('form.createdDate', 'ASC');
-      
+
     if (!isDone) {
       queryRunner.where('form.isDone = :isDone', { isDone: false });
     }
     queryRunner.offset((page - 1) * take).limit(take); //rawData를 불러올 경우 skip, limit가 작동 안함=> offset, limit로 변경
+    const [ss, total] = await queryRunner.getManyAndCount();
     const rawData = await queryRunner.getRawMany();
 
     // MySQL의 `GROUP_CONCAT()`은 문자열로 반환되므로, JSON으로 변환
@@ -99,10 +99,9 @@ export class ApplicationFormService {
     }));
 
     if (formattedData.length === 0) {
-      return { message: `미해결 입학신청이 존재하지 않습니다` };
+      return { message: `미해결 입학신청이 존재하지 않습니다`, data: [] };
     }
 
-    const total = formattedData.length;
     const totalPage = Math.ceil(total / take);
     const nextPage = page < totalPage ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
@@ -156,12 +155,12 @@ export class ApplicationFormService {
     });
   }
 
-  async findApplicationByUser(userId: number,language:Language) {
+  async findApplicationByUser(userId: number, language: Language) {
     const queryRunner = await this.dataSource
       .getRepository(ApplicationForm)
       .createQueryBuilder('form')
       .leftJoin(ApplicationAttachment, 'attach', 'form.id=attach.applicationId')
-      .leftJoin(Course,'course','form.course=course.id')
+      .leftJoin(Course, 'course', 'form.courseId=course.id')
       .select([
         'form.id AS Id',
         'form.phoneNumber AS phoneNumber',
@@ -183,15 +182,19 @@ export class ApplicationFormService {
         ']'), '[]'
       ) AS attachments
     `,
-      )
-      switch(language){
-        case 'korean':queryRunner.addSelect('course.korean AS course')
-        case 'japanese':queryRunner.addSelect('course.japanese AS course')
-        case 'english':queryRunner.addSelect('course.english AS course')
-      }
-    queryRunner
-      .groupBy('form.id')
-      .where('form.userId= :userId', { userId });
+      );
+    switch (language) {
+      case 'korean':
+        queryRunner.addSelect('course.korean AS korean');
+        break;
+      case 'japanese':
+        queryRunner.addSelect('course.japanese AS japanese');
+        break;
+      case 'english':
+        queryRunner.addSelect('course.english AS english');
+        break;
+    }
+    queryRunner.groupBy('form.id').where('form.userId= :userId', { userId });
     const rawData = await queryRunner.getRawMany();
     const JsonData = rawData.map((item) => ({
       ...item,

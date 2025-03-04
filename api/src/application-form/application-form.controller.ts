@@ -48,8 +48,8 @@ export class ApplicationFormController {
           format: 'binary',
           description: '입학 신청서류',
         },
-        course: { type: 'string', description: '신청 전공' },
-        phoneNumber:{type:'string', description:'신청자의 연락처'},
+        courseId: { type: 'string', description: '신청 전공' },
+        phoneNumber: { type: 'string', description: '신청자의 연락처' },
       },
     },
   })
@@ -93,7 +93,7 @@ export class ApplicationFormController {
           id: 1,
           userId: 1,
           course: 'korean',
-          phoneNumber:'010-1234-5678',
+          phoneNumber: '010-1234-5678',
           createdDate: '2025-01-31T15:12:47.145Z',
           isDone: false,
           userName: '문성윤',
@@ -123,12 +123,10 @@ export class ApplicationFormController {
     @Query('ignore', new DefaultValuePipe(false)) ignore: boolean,
     @Req() req,
   ) {
-    const language=req.cookies['language']||'korean'
     return await this.applicationFormService.findPagination(
       limit,
       page,
       ignore,
-      language,
     );
   }
 
@@ -144,7 +142,7 @@ export class ApplicationFormController {
             '새로 추가하는 입학 신청서류, 서류가 없을 경우 필수 아님',
         },
         course: { type: 'string', description: '신청 전공, 필수 아님' },
-        phoneNumber:{type:'string', description:'연락처, 필수 아님'},
+        phoneNumber: { type: 'string', description: '연락처, 필수 아님' },
         isDone: { type: 'boolean', description: '처리 여부, 필수 아님' },
         deleteFilePath: {
           type: 'string',
@@ -204,10 +202,10 @@ export class ApplicationFormController {
   @UseGuards(AuthGuard)
   @Get('user')
   async findUserApplication(@Req() req) {
-    const language=req.cookies['language']||'korean'
+    const language = req.cookies['language'] || 'korean';
     const Form = await this.applicationFormService.findApplicationByUser(
       req.user.id,
-      language
+      language,
     );
     return {
       message: '유저의 입학정보를 불러왔습니다.',

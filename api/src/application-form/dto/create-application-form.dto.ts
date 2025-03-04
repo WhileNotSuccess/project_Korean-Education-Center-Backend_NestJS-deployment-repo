@@ -1,8 +1,8 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreateApplicationFormDto {
-    @IsNumber()
-    course:number
-    @IsString()
-    phoneNumber:string
+  @IsNumber()
+  courseId: number;
+  @IsString()
+  phoneNumber: string;
 }

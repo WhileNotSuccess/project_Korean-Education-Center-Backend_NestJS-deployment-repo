@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Course } from '../../course/entities/course.entity';
 
 @Entity({ name: 'ApplicationForm' })
 export class ApplicationForm {
@@ -17,13 +18,13 @@ export class ApplicationForm {
   @Column()
   userId: number;
   @Column()
-  course: number;
+  courseId: number;
   @CreateDateColumn()
   createdDate: Date;
   @Column({ default: false })
   isDone: boolean;
-  @Column({length:30})
-  phoneNumber:string
+  @Column({ length: 30 })
+  phoneNumber: string;
   @OneToMany(
     () => ApplicationAttachment,
     (attachment) => attachment.applicationId,
@@ -33,4 +34,7 @@ export class ApplicationForm {
   @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
+  @ManyToOne(() => Course, (course) => course.id)
+  @JoinColumn({ name: 'courseId' })
+  course: Course;
 }
