@@ -25,6 +25,13 @@ export class EmailService {
       to: email,
       subject: emailText.subject,
       html: emailText.html,
+      attachments: [
+        {
+          filename: 'yju-logo.png',
+          path: '/files/yju-logo.png',
+          cid: 'yju-logo',
+        },
+      ],
     });
   }
 }
