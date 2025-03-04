@@ -7,6 +7,7 @@ import {
   UploadedFile,
   Get,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AttachmentsService } from './attachments.service';
@@ -15,11 +16,14 @@ import { ImageDiskOptions } from 'src/common/multer-imageDiskoptions';
 import {
   ApiBody,
   ApiConsumes,
+  ApiExcludeEndpoint,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { decrypto } from 'src/common/utils/crypto';
 
 @Controller('attachments')
 export class AttachmentsController {
@@ -56,7 +60,7 @@ export class AttachmentsController {
     };
   }
 
-  @ApiOperation({ summary: '파일 다운로드' })
+  @ApiOperation({ summary: '이미지 다운로드' })
   @ApiParam({
     name: 'filename',
     example: '20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
@@ -66,11 +70,22 @@ export class AttachmentsController {
       download: 'file',
     },
   })
-  @Get(':filename') //다운로드
-  async downloadFile(
+  @Get(':filename')
+  async downloadImage(
     @Res() res: Response,
     @Param('filename') filename: string,
   ) {
     return res.download(`/files/${filename}`);
+  }
+
+  @ApiExcludeEndpoint()
+  @Get('file')
+  async downloadFile(
+    @Res() res: Response,
+    @Query('filename') filename: string,
+    @Query('iv') iv:string
+  ) {
+    const decrypted=await decrypto(filename,iv)
+    return res.download(`/files/${decrypted}`);
   }
 }
