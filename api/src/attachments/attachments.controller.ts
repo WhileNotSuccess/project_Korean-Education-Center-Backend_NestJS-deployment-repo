@@ -59,7 +59,16 @@ export class AttachmentsController {
       url: file.filename,
     };
   }
-
+  @ApiExcludeEndpoint()
+  @Get('file')
+  async downloadFile(
+    @Res() res: Response,
+    @Query('filename') filename: string,
+    @Query('iv') iv:string
+  ) {
+    const decrypted=await decrypto(filename,iv)
+    return res.download(`/files/${decrypted}`);
+  }
   @ApiOperation({ summary: '이미지 다운로드' })
   @ApiParam({
     name: 'filename',
@@ -78,14 +87,5 @@ export class AttachmentsController {
     return res.download(`/files/${filename}`);
   }
 
-  @ApiExcludeEndpoint()
-  @Get('file')
-  async downloadFile(
-    @Res() res: Response,
-    @Query('filename') filename: string,
-    @Query('iv') iv:string
-  ) {
-    const decrypted=await decrypto(filename,iv)
-    return res.download(`/files/${decrypted}`);
-  }
+
 }
