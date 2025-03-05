@@ -14,7 +14,7 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 237.719px;">
   <td style="height: 237.719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
+  <td style="padding: 5%; height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
   <p style="text-align: center;"><strong><span style="font-size: 24pt;"><span style="color: rgb(53, 152, 219);">메일인증</span> 안내입니다.</span></strong></p>
   <p style="text-align: center;">&nbsp;</p>
   <p style="text-align: center;"><span style="font-size: 14pt;">안녕하세요.</span></p>
@@ -26,12 +26,12 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 46.375px;">
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">메일 인증</div></a></div></td>
+  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="margin:0 auto; text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">메일 인증</div></a></div></td>
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
   </tr>
   <tr style="height: 84.1719px;">
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
+  <td style="padding: 5%; height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
   <p><span style="font-size: 10pt; color: rgb(206, 212, 217);">만약 버튼이 정상적으로 클릭되지 않는다면, 아래 링크를 복사하여 접속해주세요.</span></p>
   <span style="color: rgb(206, 212, 217); font-size: 10pt;">${url}</span></td>
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
@@ -60,7 +60,7 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 237.719px;">
   <td style="height: 237.719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
+  <td style="padding: 5%; height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
   <p style="text-align: center;"><strong><span style="font-size: 24pt;"><span style="color: rgb(53, 152, 219);">Mail Verification</span> Notice</span></strong></p>
   <p style="text-align: center;">&nbsp;</p>
   <p style="text-align: center;"><span style="font-size: 14pt;">Hello</span></p>
@@ -72,12 +72,12 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 46.375px;">
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">Mail Verification</div></a></div></td>
+  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="margin:0 auto; text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">Mail Verification</div></a></div></td>
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
   </tr>
   <tr style="height: 84.1719px;">
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
+  <td style="padding: 5%; height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
   <p><span style="font-size: 10pt; color: rgb(206, 212, 217);">If the button does not work properly, please copy and paste the link below into your browser.</span></p>
   <span style="color: rgb(206, 212, 217); font-size: 10pt;">${url}</span></td>
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
@@ -106,7 +106,7 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 237.719px;">
   <td style="height: 237.719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
+  <td style="padding: 5%; height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
   <p style="text-align: center;"><strong><span style="font-size: 24pt;">这是<span style="color: rgb(53, 152, 219);">邮件认证</span>的通知</span></strong></p>
   <p style="text-align: center;">&nbsp;</p>
   <p style="text-align: center;"><span style="font-size: 14pt;">您好</span></p>
@@ -118,12 +118,12 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 46.375px;">
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">邮件认证</div></a></div></td>
+  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="margin:0 auto; text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">邮件认证</div></a></div></td>
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
   </tr>
   <tr style="height: 84.1719px;">
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
+  <td style="padding: 5%; height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
   <p><span style="font-size: 10pt; color: rgb(206, 212, 217);">如果按钮无法正常点击，请复制下面的链接并访问。</span></p>
   <span style="color: rgb(206, 212, 217); font-size: 10pt;">${url}</span></td>
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
@@ -152,7 +152,7 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 237.719px;">
   <td style="height: 237.719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
+  <td style="padding: 5%; height: 237.719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;">
   <p style="text-align: center;"><strong><span style="font-size: 24pt;"><span style="color: rgb(53, 152, 219);">メール認証</span> のご案内です。</span></strong></p>
   <p style="text-align: center;">&nbsp;</p>
   <p style="text-align: center;"><span style="font-size: 14pt;">こんにちは。</span></p>
@@ -164,12 +164,12 @@ export const signUpEmailText = (language: string, url: string) => {
   </tr>
   <tr style="height: 46.375px;">
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">メール認証</div></a></div></td>
+  <td style="height: 46.375px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); text-align: center; border-width: 0px;"><div style="display : flex; justify-content: center;"><a href=${url} style="margin:0 auto; text-decoration-line: none; text-align: center;" ><div style="border: 1px solid black; width:150px; background-color:rgb(53, 152, 219); padding: 5% 1%; color:white; border-radius:10px; text-align:center; align-items:center; font-size:14pt; font-weight:bold;">メール認証</div></a></div></td>
   <td style="height: 46.375px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
   </tr>
   <tr style="height: 84.1719px;">
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
-  <td style="height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
+  <td style="padding: 5%; height: 84.1719px; border-color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-width: 0px;"><hr>
   <p><span style="font-size: 10pt; color: rgb(206, 212, 217);">もしボタンが正常にクリックできない場合は、下記のリンクをコピーしてアクセスしてください。</span></p>
   <span style="color: rgb(206, 212, 217); font-size: 10pt;">${url}</span></td>
   <td style="height: 84.1719px; border-color: rgb(0, 0, 0); border-width: 0px;">&nbsp;</td>
