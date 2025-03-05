@@ -199,7 +199,7 @@ export class PostsController {
     if (!post) {
       return {
         message:`${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
-        data:[],
+        data:{},
         files:[],
       }
       // 글을 찾지 못했을 경우 없다는 return
