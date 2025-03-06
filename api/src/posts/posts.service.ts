@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { DataSource } from 'typeorm';
@@ -40,12 +37,11 @@ export class PostsService {
         return post;
 
       case 'number': //게시글 찾을 경우
-
         post = await this.datasource.manager.findOne(Post, {
           where: { id: find },
           relations: ['user'],
         });
-        if(!post)return null
+        if (!post) return null;
         const res = { ...post, user: '', author: post.user.name };
         return res;
     }
@@ -82,13 +78,13 @@ export class PostsService {
 
     if (total == 0) {
       return {
-        message:`${category}글이 존재하지 않습니다.`,
-        data:[],
-        currentPage:1,
-        prevPage:null,
-        nextPage:null,
-        totalPage:1,
-      }
+        message: `${category}글이 존재하지 않습니다.`,
+        data: [],
+        currentPage: 1,
+        prevPage: null,
+        nextPage: null,
+        totalPage: 1,
+      };
     }
 
     const totalPage = Math.ceil(total / take);
@@ -212,7 +208,7 @@ export class PostsService {
     category: string,
     page: number,
     limit: number,
-    language:string,
+    language: string,
     title?: string,
     author?: string,
     content?: string,
@@ -221,7 +217,9 @@ export class PostsService {
     queryBuilder
       .from(Post, 'post')
       .leftJoin(User, 'user', 'post.userId = user.id');
-    queryBuilder.where('category = :category', { category }).andWhere('language=:language',{language})
+    queryBuilder
+      .where('category = :category', { category })
+      .andWhere('language=:language', { language });
     queryBuilder.select(
       'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, user.name AS author',
     );
@@ -330,7 +328,6 @@ export class PostsService {
       }
     }
 
-    console.log(slideList)
     return slideList;
   }
 }
