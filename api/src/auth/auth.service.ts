@@ -49,11 +49,13 @@ export class AuthService {
       ...dto,
       password: hashedPassword,
     });
-    await this.emailService.sendSignUpEmail(
-      dto.email,
-      newUser.signUpVerifyToken,
-      language,
-    );
+    // await this.emailService.sendSignUpEmail(
+    //   dto.email,
+    //   newUser.signUpVerifyToken,
+    //   language,
+    // );
+
+    return { message: 'done' };
   }
 
   async issuesAJwt(user: User) {

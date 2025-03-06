@@ -100,12 +100,24 @@ export class AuthController {
     },
   })
   @Post('register')
-  async register(@Body() dto: SignUpDto, @Req() req: Request) {
+  async register(
+    @Body() dto: SignUpDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     const language = req.cookies['language'] ?? 'korean';
     await this.authService.signUp(dto, language);
-    return {
-      message: '회원가입 완료, 이메일 인증 필요',
-    };
+    const token = await this.authService.signIn(dto);
+    res.cookie('access_token', token.access_token, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: process.env.COOKIE_DOMAIN,
+    });
+    res.json({
+      message: 'done',
+    });
   }
 
   @ApiExcludeEndpoint()
