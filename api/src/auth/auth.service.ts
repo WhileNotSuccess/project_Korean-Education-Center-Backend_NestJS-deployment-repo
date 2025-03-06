@@ -24,9 +24,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
     }
-    if (!user.emailVerifiedAt) {
-      throw new UnauthorizedException('이메일 인증을 완료해주세요');
-    }
+    // if (!user.emailVerifiedAt) {
+    //   throw new UnauthorizedException('이메일 인증을 완료해주세요');
+    // }
     if (!user.password) {
       throw new UnauthorizedException('아이디나 비밀번호가 잘못되었습니다.');
     }
