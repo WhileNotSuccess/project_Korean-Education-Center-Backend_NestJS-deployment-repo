@@ -12,7 +12,6 @@ import {
   UploadedFiles,
   BadRequestException,
   DefaultValuePipe,
-  NotFoundException,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -20,8 +19,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AttachmentsService } from 'src/attachments/attachments.service';
-import { Request, Response } from 'express';
-import { Multer } from 'multer';
+import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
@@ -42,7 +40,26 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly attachmentService: AttachmentsService,
   ) {}
+  @ApiOperation({
+    summary: '메인에서 사용, 모집요강 학사일정을 받아올 수 있다.',
+  })
+  @ApiResponse({
+    example: {
+      message: '학사일정을 불러왔습니다.',
+      content: '<table>hello</table>',
+    },
+  })
+  @Get('main/overview')
+  async mainOverview(@Req() req) {
+    const overview = await this.postsService.getOverview(
+      req.cookies['language'] || 'korean',
+    );
 
+    return {
+      message: '학사일정을 불러왔습니다.',
+      content: overview,
+    };
+  }
   @ApiOperation({
     summary:
       '메인에서 사용, 모집요강 파일 이름과 사진, 입학신청서 파일 이름과 사진을 받아 올 수 있다.',
@@ -68,7 +85,7 @@ export class PostsController {
     );
 
     return {
-      message:'모집요강과 입학신청서를 불러왔습니다.',
+      message: '모집요강과 입학신청서를 불러왔습니다.',
       guidelinesForApplicantsFileName: guidelinesForApplicants.filename,
       guidelinesForApplicantsImageName: guidelinesForApplicants.image,
       applicationFileName: applicants.filename,
@@ -126,7 +143,7 @@ export class PostsController {
     @Query('author') author?: string,
     @Query('content') content?: string,
   ) {
-    const language=req.cookies['language']||'korean'
+    const language = req.cookies['language'] || 'korean';
     const filter = { title, author, content };
     const selectedFilters = Object.values(filter).filter((value) => value);
     if (selectedFilters.length !== 1) {
@@ -142,7 +159,6 @@ export class PostsController {
       title,
       author,
       content,
-      
     );
   }
 
@@ -198,10 +214,10 @@ export class PostsController {
     const post = await this.postsService.getOne(find, language); //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
     if (!post) {
       return {
-        message:`${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
-        data:{},
-        files:[],
-      }
+        message: `${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
+        data: {},
+        files: [],
+      };
       // 글을 찾지 못했을 경우 없다는 return
     }
     return {
@@ -341,12 +357,7 @@ export class PostsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
-    await this.postsService.update(
-      id,
-      updatePostDto,
-      files,
-      req.user
-    );
+    await this.postsService.update(id, updatePostDto, files, req.user);
     return { message: '글이 수정되었습니다.' };
   }
 
