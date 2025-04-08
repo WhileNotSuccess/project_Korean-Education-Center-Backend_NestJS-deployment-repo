@@ -2,13 +2,15 @@ import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
 import * as moment from 'moment-timezone';
+import { fileURLToPath } from 'url';
 
 const refuseFiletype =
   /^(application\/(x-sh|x-msdownload|javascript|php|octet-stream)|text\/(html|plain|javascript|x-script)|image\/(svg\+xml|vnd\.microsoft\.icon))$/i;
 
 export const FileDiskOptions = {
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.match(refuseFiletype)||!file.mimetype) {
+    console.log(file.mimetype);
+    if (file.mimetype.match(refuseFiletype) || !file.mimetype) {
       //파일 타입이 일치하거나 mimetype이 false(한글 파일 같이 해외에서 사용되지 않는 파일)이면 badRequest
       cb(
         new BadRequestException({

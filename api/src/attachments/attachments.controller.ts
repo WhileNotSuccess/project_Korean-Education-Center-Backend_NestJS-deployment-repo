@@ -46,7 +46,6 @@ export class AttachmentsController {
       url: '20250201-000654_023b24b0-dfe5-11ef-81bd-8f83f8e6a73a.png',
     },
   })
-  @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', ImageDiskOptions))
   async createImage(@UploadedFile() file: Express.Multer.File) {

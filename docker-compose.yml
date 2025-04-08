@@ -17,6 +17,7 @@ services:
       - COOKIE_DOMAIN=${COOKIE_DOMAIN}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - "3001:3000"
     volumes:

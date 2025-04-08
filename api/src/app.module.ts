@@ -27,6 +27,7 @@ import { PostImages } from './attachments/entities/post-images.entity';
 import { BatchModule } from './batch/batch.module';
 import { CourseModule } from './course/course.module';
 import { Course } from './course/entities/course.entity';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { Course } from './course/entities/course.entity';
     EmailModule,
     BatchModule,
     CourseModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
