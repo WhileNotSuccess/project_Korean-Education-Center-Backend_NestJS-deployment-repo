@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { DataSource } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { AttachmentsService } from 'src/attachments/attachments.service';
-import { Multer } from 'multer';
 import { transactional } from 'src/common/utils/transaction-helper';
 import * as levenshtein from 'fast-levenshtein';
 import { findFiles } from 'src/common/fileArrayFind';
@@ -60,6 +59,20 @@ export class PostsService {
     const image = await this.attachmentService.getImageByPostId(post.id);
 
     return { ...post, filename: attachment[0].filename, image };
+  }
+
+  async getOverview(language: string) {
+    const post = await this.datasource.manager
+      .createQueryBuilder()
+      .select('posts')
+      .from(Post, 'posts') //Post테이블에서 정보 다 받아오고
+      .where('category LIKE :category', { category: 'korean-sample' })
+      .andWhere('language LIKE :language', { language })
+      .orderBy('updatedDate', 'DESC')
+      .getOne(); // 최신순 정렬로 하나만 받아옴
+
+    const match = post.content.match(/<table[\s\S]*?<\/table>/i);
+    return match[0];
   }
   async getPagination(
     category: string,
@@ -193,6 +206,7 @@ export class PostsService {
         await this.attachmentService.createAttachment(files, id, queryRunner);
       }
       const { deleteFilePath, ...newPost } = updatePostDto;
+      console.log('삭제될 파일: ', deleteFilePath);
       await queryRunner.manager.update(Post, id, newPost);
     });
   }
