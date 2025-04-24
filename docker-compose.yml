@@ -3,10 +3,10 @@ services:
     image: node:20-buster
     tty: true
     environment:
-      - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_DATABASE=${DB_DATABASE}
+      - DB_PASSWORD=${DB_PASS}
+      - DB_DATABASE=${DB_NAME}
+      - DB_HOST=${DB_HOST}
       - JWT_SECRET=${JWT_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
       - BACKEND_URL=${BACKEND_URL}
@@ -24,3 +24,20 @@ services:
       - ./files:/files
     working_dir: /app
     command: bash -c "npm install && npm run start:dev"
+    networks:
+      - backend
+  db:
+    image: mysql:8.1.0
+    environment:
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - TZ=Asia/Seoul
+    ports:
+      - "3307:3306"
+    networks:
+      - backend
+
+networks:
+  backend:
