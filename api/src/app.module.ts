@@ -18,7 +18,7 @@ import { ConsultationRequest } from './consultation-request/entities/consultatio
 import { Staff } from './staff/entities/staff.entity';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
-import { EmailModule } from './email/email.module';
+// import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApplicationAttachmentsModule } from './application-attachments/application-attachments.module';
@@ -71,7 +71,7 @@ import { Course } from './course/entities/course.entity';
     StaffModule,
     UsersModule,
     AuthModule,
-    EmailModule,
+    // EmailModule,
     BatchModule,
     CourseModule,
   ],

@@ -9,14 +9,14 @@ import * as bcrypt from 'bcrypt';
 import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
-import { EmailService } from 'src/email/email.service';
+//import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly emailService: EmailService,
+    // private readonly emailService: EmailService,
   ) {}
 
   async signIn(dto: SignInDto) {
