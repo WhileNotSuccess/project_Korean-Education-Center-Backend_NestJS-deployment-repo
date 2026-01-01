@@ -71,6 +71,8 @@ export class PostsController {
       guidelinesForApplicantsImageName: '20250224-161403.jpg',
       applicationFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
       applicationImageName: '20250224-161403_tinymce_5.10.5_dev.jpg',
+      guideBookFileName: '20250224-161403_tinymce_5.10.5_dev.pdf',
+      guideBookImageName: '20250224-161403_tinymce_5.10.5_dev.jpg',
     },
   })
   @Get('main/applicants')
@@ -83,13 +85,18 @@ export class PostsController {
       'applicants',
       req.cookies['language'] || 'korean',
     );
-
+    const guideBook = await this.postsService.getOneForMain(
+      'guideBook',
+      req.cookies['language'] || 'korean',
+    );
     return {
       message: '모집요강과 입학신청서를 불러왔습니다.',
       guidelinesForApplicantsFileName: guidelinesForApplicants.filename,
       guidelinesForApplicantsImageName: guidelinesForApplicants.image,
       applicationFileName: applicants.filename,
       applicationImageName: applicants.image,
+      guideBookFileName: guideBook.filename,
+      guideBookImageName: guideBook.image,
     };
   }
 
