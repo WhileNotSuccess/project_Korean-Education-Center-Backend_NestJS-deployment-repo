@@ -32,6 +32,8 @@ export class Post {
   updatedDate: Date;
   @Column({ type: 'enum', enum: Language, default: Language.KOREAN })
   language: string;
+  @Column({ default: false })
+  isPinned: boolean;
   @OneToMany(() => Attachment, (attach) => attach.postId, {
     onDelete: 'CASCADE',
   })

@@ -86,7 +86,7 @@ export class PostsService {
       relations: ['user'],
       skip: (page - 1) * take,
       take,
-      order: { updatedDate: 'DESC' },
+      order: { isPinned: 'DESC', createdDate: 'DESC' },
     });
 
     if (total == 0) {
@@ -131,6 +131,9 @@ export class PostsService {
     await transactional<void>(this.datasource, async (queryRunner) => {
       const post = await queryRunner.manager.save(Post, {
         ...createPostDto,
+        isPinned:
+          createPostDto.category === 'notice' &&
+          createPostDto.isPinned === true,
         userId: id,
       }); // post 테이블 작성
 
@@ -207,6 +210,14 @@ export class PostsService {
       }
       const { deleteFilePath, ...newPost } = updatePostDto;
       console.log('삭제될 파일: ', deleteFilePath);
+      const existing = await queryRunner.manager.findOne(Post, {
+        where: { id },
+        select: ['category', 'isPinned'],
+      });
+      const category = newPost.category ?? existing?.category;
+      // 입력이 없으면 false, true로 명시될 때만 고정
+      newPost.isPinned =
+        category === 'notice' && newPost.isPinned === true;
       await queryRunner.manager.update(Post, id, newPost);
     });
   }
@@ -235,7 +246,7 @@ export class PostsService {
       .where('category = :category', { category })
       .andWhere('language=:language', { language });
     queryBuilder.select(
-      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, user.name AS author',
+      'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, post.isPinned AS isPinned, user.name AS author',
     );
     let results = await queryBuilder.getRawMany();
 
@@ -250,9 +261,11 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           author: post.author,
+          isPinned: !!post.isPinned,
           include: (post.title as string).indexOf(title) !== -1,
           distance: levenshtein.get(post.title, title),
         }))
+        .filter((post) => post.include)
         .sort(this.sort);
     }
     if (author) {
@@ -266,9 +279,11 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           author: post.author,
+          isPinned: !!post.isPinned,
           include: (post.author as string).indexOf(author) !== -1,
           distance: levenshtein.get(post.author, author),
         }))
+        .filter((post) => post.include)
         .sort(this.sort);
     }
     if (content) {
@@ -282,9 +297,11 @@ export class PostsService {
           createdDate: post.createdDate,
           updatedDate: post.updatedDate,
           author: post.author,
+          isPinned: !!post.isPinned,
           include: (post.content as string).indexOf(content) !== -1,
           distance: levenshtein.get(post.content, content),
         }))
+        .filter((post) => post.include)
         .sort(this.sort);
     }
     // 페이지가 1인 경우 limit * 0 ~ limit * 1 - 1 까지
@@ -303,6 +320,9 @@ export class PostsService {
     };
   }
   private sort(a, b) {
+    if (!!a.isPinned !== !!b.isPinned) {
+      return a.isPinned ? -1 : 1;
+    }
     if ((a.include && b.include) || (!a.include && !b.include)) {
       if (a.distance === b.distance) {
         return a.id - b.id;
