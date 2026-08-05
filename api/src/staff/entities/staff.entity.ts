@@ -11,9 +11,15 @@ export class Staff {
   @Column({ length: 50 })
   position: string;
 
+  @Column({ length: 50 })
+  subrole: string;
+
   @Column({ length: 13 })
   phone: string;
 
   @Column({ length: 100 })
   email: string;
+
+  @Column({ default: 0 })
+  sortOrder: number;
 }
