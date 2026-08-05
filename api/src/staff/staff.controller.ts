@@ -16,26 +16,26 @@ import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Controller('staff')
 export class StaffController {
-  constructor(private readonly staffService: StaffService) {}
+  constructor(private readonly staffService: StaffService) { }
 
-  @ApiOperation({ summary: '강사, 교직원 목록 불러오기' })
+  @ApiOperation({ summary: '교직원 목록 불러오기' })
   @ApiResponse({
     example: {
-      message: '강사, 교직원 목록을 불러왔습니다.',
-      teacher: [
-        {
-          id: 1,
-          name: '성춘향',
-          position: 'teacher',
-          phone: '010-1234-5678',
-          email: 'teacher@gmail.com',
-        },
-      ],
+      message: '교직원 목록을 불러왔습니다.',
       staff: [
         {
-          id: 2,
+          id: 1,
           name: '홍길동',
-          position: '국제교류원장',
+          position: '교수',
+          subrole: '센터장',
+          phone: '010-1234-5678',
+          email: 'inti@g.yju.ac.kr',
+        },
+        {
+          id: 2,
+          name: '김길동',
+          position: '교수',
+          subrole: '유학생 담당 선생님',
           phone: '010-1234-5678',
           email: 'inti@g.yju.ac.kr',
         },
@@ -44,18 +44,17 @@ export class StaffController {
   })
   @Get()
   async getStaff() {
-    const { teacher, staff } = await this.staffService.findAll();
+    const { staff } = await this.staffService.findAll();
     return {
-      message: '강사, 교직원 목록을 불러왔습니다.',
-      teacher: teacher,
+      message: '교직원 목록을 불러왔습니다.',
       staff: staff,
     };
   }
 
-  @ApiOperation({ summary: '강사, 교직원 정보 추가하기' })
+  @ApiOperation({ summary: '교직원 정보 추가하기' })
   @ApiResponse({
     example: {
-      message: '강사, 교직원정보가 추가되었습니다.',
+      message: '교직원정보가 추가되었습니다.',
     },
   })
   @ApiBody({
@@ -66,14 +65,14 @@ export class StaffController {
   async createStaff(@Body() dto: CreateStaffDto) {
     await this.staffService.create(dto);
     return {
-      message: '강사, 교직원정보가 추가되었습니다.',
+      message: '교직원정보가 추가되었습니다.',
     };
   }
 
-  @ApiOperation({ summary: '강사, 교직원 정보 수정하기' })
+  @ApiOperation({ summary: '교직원 정보 수정하기' })
   @ApiResponse({
     example: {
-      message: '강사, 교직원 정보가 수정되었습니다.',
+      message: '교직원 정보가 수정되었습니다.',
     },
   })
   @ApiBody({
@@ -84,19 +83,29 @@ export class StaffController {
     type: 'number',
     example: 1,
   })
+  @ApiOperation({ summary: '교직원 순서 일괄 수정하기' })
+  @UseGuards(AdminGuard)
+  @Patch('order')
+  async updateStaffOrder(@Body() orders: { id: number; sortOrder: number }[]) {
+    await this.staffService.updateOrder(orders);
+    return {
+      message: '교직원 순서가 수정되었습니다.',
+    };
+  }
+
   @UseGuards(AdminGuard)
   @Patch(':id')
   async updateStaff(@Param('id') id: number, @Body() dto: UpdateStaffDto) {
     await this.staffService.update(id, dto);
     return {
-      message: '강사, 교직원정보가 수정되었습니다.',
+      message: '교직원정보가 수정되었습니다.',
     };
   }
 
-  @ApiOperation({ summary: '강사, 교직원 정보 삭제하기' })
+  @ApiOperation({ summary: '교직원 정보 삭제하기' })
   @ApiResponse({
     example: {
-      message: '강사, 교직원 정보가 삭제되었습니다.',
+      message: '교직원 정보가 삭제되었습니다.',
     },
   })
   @ApiParam({
@@ -109,7 +118,7 @@ export class StaffController {
   async deleteStaff(@Param('id') id: number) {
     await this.staffService.remove(id);
     return {
-      message: '강사, 교직원 정보가 삭제되었습니다.',
+      message: '교직원 정보가 삭제되었습니다.',
     };
   }
 }
