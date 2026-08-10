@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { DataSource } from 'typeorm';
@@ -18,7 +18,12 @@ export class PostsService {
     private readonly attachmentService: AttachmentsService,
   ) {}
 
-  async getOne(find: number | string, language: string) {
+  async getOne(
+    find: number | string,
+    language: string,
+    user?: { id: number; email: string },
+    inputPassword?: string,
+  ) {
     let post: Post;
 
     switch (
@@ -41,7 +46,18 @@ export class PostsService {
           relations: ['user'],
         });
         if (!post) return null;
-        const res = { ...post, user: '', author: post.user.name };
+        if (post.isSecret) {
+          const isAdmin = user && user.email === process.env.ADMIN_EMAIL;
+          if (!isAdmin) {
+            const isAuthor = user && post.userId !== null && post.userId !== undefined && user.id === post.userId;
+            if (!isAuthor) {
+              if (!inputPassword || post.password !== inputPassword) {
+                throw new ForbiddenException('비밀글입니다.');
+              }
+            }
+          }
+        }
+        const res = { ...post, user: '', author: post.user ? post.user.name : post.writerName };
         return res;
     }
   }
@@ -107,7 +123,11 @@ export class PostsService {
     return {
       message: `${category}의 ${page}번째 페이지를 불러왔습니다.`,
       data: value.map((item) => {
-        return { ...item, user: {}, author: item.user.name };
+        let authorName = item.user ? item.user.name : item.writerName;
+        if (category === 'qna') {
+          authorName = authorName ? maskName(authorName) : '***';
+        }
+        return { ...item, user: {}, author: authorName };
       }),
       currentPage: page,
       prevPage,
@@ -134,7 +154,7 @@ export class PostsService {
         isPinned:
           createPostDto.category === 'notice' &&
           createPostDto.isPinned === true,
-        userId: id,
+        userId: id || null,
       }); // post 테이블 작성
 
       if (createFilenames) {
@@ -157,8 +177,21 @@ export class PostsService {
     updatePostDto: UpdatePostDto,
     files: Express.Multer.File[],
     user,
+    password?: string,
   ) {
-    await checkOwnership(user, Post, id, this.datasource);
+    const post = await this.datasource.manager.findOne(Post, { where: { id } });
+    if (!post) throw new NotFoundException('게시글이 존재하지 않습니다.');
+
+    const isAdmin = user && user.email === process.env.ADMIN_EMAIL;
+    if (!isAdmin) {
+      if (post.userId === null || post.userId === undefined) {
+        if (!post.password || post.password !== password) {
+          throw new ForbiddenException('권한이 없거나 비밀번호가 틀렸습니다.');
+        }
+      } else {
+        await checkOwnership(user, Post, id, this.datasource);
+      }
+    }
 
     const oldPostImages = await this.datasource.manager.find(PostImages, {
       where: { postId: id },
@@ -217,13 +250,25 @@ export class PostsService {
       const category = newPost.category ?? existing?.category;
       // 입력이 없으면 false, true로 명시될 때만 고정
       newPost.isPinned =
-        category === 'notice' && newPost.isPinned === true;
+          category === 'notice' && newPost.isPinned === true;
       await queryRunner.manager.update(Post, id, newPost);
     });
   }
 
-  async remove(id: number, user) {
-    await checkOwnership(user, Post, id, this.datasource);
+  async remove(id: number, user, password?: string) {
+    const post = await this.datasource.manager.findOne(Post, { where: { id } });
+    if (!post) throw new NotFoundException('게시글이 존재하지 않습니다.');
+
+    const isAdmin = user && user.email === process.env.ADMIN_EMAIL;
+    if (!isAdmin) {
+      if (post.userId === null || post.userId === undefined) {
+        if (!post.password || post.password !== password) {
+          throw new ForbiddenException('권한이 없거나 비밀번호가 틀렸습니다.');
+        }
+      } else {
+        await checkOwnership(user, Post, id, this.datasource);
+      }
+    }
     await transactional<void>(this.datasource, async (queryRunner) => {
       await queryRunner.manager.delete(Post, id);
     });
@@ -364,4 +409,34 @@ export class PostsService {
 
     return slideList;
   }
+
+  async answer(id: number, answer: string) {
+    await this.datasource.manager.update(Post, id, {
+      answer,
+      answerDate: new Date(),
+    });
+  }
+
+  async convertToFaq(id: number) {
+    const qna = await this.datasource.manager.findOne(Post, {
+      where: { id },
+    });
+    if (!qna) throw new Error('게시글을 찾을 수 없습니다.');
+    
+    await this.datasource.manager.save(Post, {
+      title: qna.title,
+      content: qna.answer || qna.content,
+      category: 'faq',
+      language: qna.language,
+      userId: qna.userId,
+    });
+  }
+}
+
+function maskName(name: string): string {
+  if (!name) return '***';
+  const len = name.length;
+  if (len <= 1) return '*';
+  if (len === 2) return name[0] + '*';
+  return name[0] + '*'.repeat(len - 2) + name[len - 1];
 }

@@ -14,6 +14,7 @@ import {
   DefaultValuePipe,
   UseGuards,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -32,6 +33,8 @@ import {
 } from '@nestjs/swagger';
 import { FileDiskOptions } from 'src/common/multer-fileDiskOptions';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import * as jwt from 'jsonwebtoken';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @ApiTags('Post')
 @Controller('posts')
@@ -211,6 +214,7 @@ export class PostsController {
     @Query('category') category: string,
     @Query('id') id: number,
     @Req() req: Request,
+    @Query('password') password?: string,
   ) {
     if (category && id) {
       throw new BadRequestException('category와 id중 하나만 입력하세요.'); //category와 id 둘 다 입력 받았을 경우 badRequest
@@ -218,7 +222,20 @@ export class PostsController {
     const find = category || +id;
     const language = req.cookies['language'] || 'korean';
 
-    const post = await this.postsService.getOne(find, language); //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
+    let user = null;
+    const token = req.cookies?.['access_token'];
+    if (token) {
+      try {
+        const payload: any = jwt.verify(token, process.env.JWT_SECRET);
+        user = {
+          id: Number(payload.sub),
+          name: payload.username,
+          email: payload.email,
+        };
+      } catch (e) {}
+    }
+
+    const post = await this.postsService.getOne(find, language, user, password); //posts 테이블에 찾는 category나 id와 language를 비교해 받아옴
     if (!post) {
       return {
         message: `${find}${typeof find === 'string' ? ' 안내글이 없습니다.' : '번 게시글이 없습니다.'}`,
@@ -272,8 +289,8 @@ export class PostsController {
       totalPage: 1,
     },
   })
-  @Get(':category') // 완료
-  async getAll(
+  @Get(':category')
+  async getPagination(
     @Param('category') category: string,
     @Query('limit', new DefaultValuePipe(10)) limit: number,
     @Query('page', new DefaultValuePipe(1)) page: number,
@@ -308,7 +325,6 @@ export class PostsController {
   @ApiResponse({
     example: { message: '글이 작성되었습니다.' },
   })
-  @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async create(
@@ -316,16 +332,33 @@ export class PostsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
-    if (
-      !(
-        createPostDto.category == 'review' || createPostDto.category == 'faq'
-      ) &&
-      req.user.email !== process.env.ADMIN_EMAIL
-    ) {
-      throw new UnauthorizedException('관리자만 작성가능합니다.');
+    let userId = null;
+    let isAdmin = false;
+
+    const token = req.cookies?.['access_token'];
+    if (token) {
+      try {
+        const payload: any = jwt.verify(token, process.env.JWT_SECRET);
+        userId = Number(payload.sub);
+        if (payload.email === process.env.ADMIN_EMAIL) {
+          isAdmin = true;
+        }
+      } catch (e) {}
     }
 
-    await this.postsService.create(createPostDto, req.user.id, files);
+    if (createPostDto.category === 'qna') {
+      if (createPostDto.isSecret) {
+        if (!createPostDto.password || createPostDto.password.length < 4) {
+          throw new BadRequestException('비밀번호는 4자 이상이어야 합니다.');
+        }
+      }
+    } else {
+      if (!isAdmin) {
+        throw new ForbiddenException('관리자만 작성가능합니다.');
+      }
+    }
+
+    await this.postsService.create(createPostDto, userId, files);
     return { message: '글이 작성되었습니다.' };
   }
 
@@ -355,7 +388,6 @@ export class PostsController {
   @ApiResponse({
     example: { message: '글이 수정되었습니다.' },
   })
-  @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files', 10, FileDiskOptions))
   async update(
@@ -364,17 +396,46 @@ export class PostsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
-    await this.postsService.update(id, updatePostDto, files, req.user);
+    let user = null;
+    const token = req.cookies?.['access_token'];
+    if (token) {
+      try {
+        const payload: any = jwt.verify(token, process.env.JWT_SECRET);
+        user = {
+          id: Number(payload.sub),
+          name: payload.username,
+          email: payload.email,
+        };
+      } catch (e) {}
+    }
+
+    await this.postsService.update(id, updatePostDto, files, user, updatePostDto.password);
     return { message: '글이 수정되었습니다.' };
   }
 
   @ApiOperation({ summary: 'post 삭제하기' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ example: { message: '글이 삭제되었습니다.' } })
-  @UseGuards(AuthGuard)
   @Delete(':id') // 완료
-  async remove(@Param('id') id: number, @Req() req) {
-    await this.postsService.remove(id, req.user);
+  async remove(
+    @Param('id') id: number,
+    @Query('password') password: string,
+    @Req() req,
+  ) {
+    let user = null;
+    const token = req.cookies?.['access_token'];
+    if (token) {
+      try {
+        const payload: any = jwt.verify(token, process.env.JWT_SECRET);
+        user = {
+          id: Number(payload.sub),
+          name: payload.username,
+          email: payload.email,
+        };
+      } catch (e) {}
+    }
+
+    await this.postsService.remove(id, user, password);
     return { message: '글이 삭제되었습니다.' };
   }
 
@@ -399,5 +460,21 @@ export class PostsController {
       message: '정보를 성공적으로 가져왔습니다.',
       data: await this.postsService.slide(language),
     };
+  }
+
+  @ApiOperation({ summary: 'Q&A 답변 작성 및 수정하기' })
+  @UseGuards(AdminGuard)
+  @Patch(':id/answer')
+  async answerPost(@Param('id') id: number, @Body('answer') answer: string) {
+    await this.postsService.answer(id, answer);
+    return { message: '답변이 등록되었습니다.' };
+  }
+
+  @ApiOperation({ summary: 'Q&A 게시글을 FAQ로 전환하기' })
+  @UseGuards(AdminGuard)
+  @Post(':id/convert-to-faq')
+  async convertToFaq(@Param('id') id: number) {
+    await this.postsService.convertToFaq(id);
+    return { message: '공식 FAQ로 등록되었습니다.' };
   }
 }
