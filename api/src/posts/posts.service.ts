@@ -422,10 +422,25 @@ export class PostsService {
       where: { id },
     });
     if (!qna) throw new Error('게시글을 찾을 수 없습니다.');
+
+    let combinedContent = qna.content;
+    if (qna.answer) {
+      combinedContent = `
+        <p><strong>Q. ${qna.title}</strong></p>
+        <div style="margin-top: 10px; margin-bottom: 20px;">
+          ${qna.content}
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p><strong>A.</strong></p>
+        <div style="margin-top: 10px;">
+          ${qna.answer}
+        </div>
+      `;
+    }
     
     await this.datasource.manager.save(Post, {
       title: qna.title,
-      content: qna.answer || qna.content,
+      content: combinedContent,
       category: 'faq',
       language: qna.language,
       userId: qna.userId,
