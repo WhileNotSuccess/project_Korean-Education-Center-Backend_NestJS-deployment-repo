@@ -13,4 +13,17 @@ export class CreatePostDto {
   @IsOptional()
   @IsBoolean()
   isPinned?: boolean = false;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isSecret?: boolean = false;
+
+  @IsOptional()
+  @IsString()
+  writerName?: string;
+
+  @IsOptional()
+  @IsString()
+  password?: string;
 }
