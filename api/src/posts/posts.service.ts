@@ -97,8 +97,15 @@ export class PostsService {
     language: string,
   ) {
     // 카테고리, 현재 페이지, 가져올 글 개수
+    const whereCondition: any = { category };
+    if (category === 'qna') {
+      whereCondition.language = 'korean';
+    } else {
+      whereCondition.language = language;
+    }
+
     const [value, total] = await this.datasource.manager.findAndCount(Post, {
-      where: { category, language },
+      where: whereCondition,
       relations: ['user'],
       skip: (page - 1) * take,
       take,
@@ -155,6 +162,7 @@ export class PostsService {
           createPostDto.category === 'notice' &&
           createPostDto.isPinned === true,
         userId: id || null,
+        language: createPostDto.category === 'qna' ? 'korean' : createPostDto.language,
       }); // post 테이블 작성
 
       if (createFilenames) {
@@ -251,6 +259,9 @@ export class PostsService {
       // 입력이 없으면 false, true로 명시될 때만 고정
       newPost.isPinned =
           category === 'notice' && newPost.isPinned === true;
+      if (category === 'qna') {
+        newPost.language = 'korean';
+      }
       await queryRunner.manager.update(Post, id, newPost);
     });
   }
@@ -288,8 +299,12 @@ export class PostsService {
       .from(Post, 'post')
       .leftJoin(User, 'user', 'post.userId = user.id');
     queryBuilder
-      .where('category = :category', { category })
-      .andWhere('language=:language', { language });
+      .where('category = :category', { category });
+    if (category === 'qna') {
+      queryBuilder.andWhere('language = :language', { language: 'korean' });
+    } else {
+      queryBuilder.andWhere('language = :language', { language });
+    }
     queryBuilder.select(
       'post.id AS id , post.title AS title , post.content AS content , post.category AS category , post.createdDate AS createdDate , post.updatedDate AS updatedDate , post.language AS language, post.isPinned AS isPinned, user.name AS author',
     );
@@ -437,13 +452,21 @@ export class PostsService {
         </div>
       `;
     }
+
+    const adminUser = await this.datasource.manager.findOne(User, {
+      where: { email: process.env.ADMIN_EMAIL },
+    });
+    const adminUserId = adminUser ? adminUser.id : null;
+
+    const writerName = '관리자';
     
     await this.datasource.manager.save(Post, {
       title: qna.title,
       content: combinedContent,
       category: 'faq',
       language: qna.language,
-      userId: qna.userId,
+      userId: adminUserId,
+      writerName: writerName,
     });
   }
 }
